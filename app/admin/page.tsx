@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { Flame, TrendingUp, Lock, ShieldCheck, Zap, Bell } from 'lucide-react';
 
 export default function Home() {
