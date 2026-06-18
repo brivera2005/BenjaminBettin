@@ -1,0 +1,7 @@
+OpenShellFork/Src/Setup/Final/
+OpenShellFork/Src/**/Release/
+OpenShellFork/Src/**/Debug/
+OpenShellFork/Src/**/x64/
+OpenShellFork/Src/**/Win32/
+OpenShellFork/Src/**/ipch/
+OpenShellFork/Src/**/.vs/

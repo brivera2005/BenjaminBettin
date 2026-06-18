@@ -1,0 +1,27 @@
+name: Black Glass Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'OpenShellFork/**'
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Open-Shell fork
+        shell: cmd
+        working-directory: OpenShellFork
+        env:
+          APPVEYOR_BUILD_VERSION: 4.4.199-blackglass
+        run: Src\Setup\__MakeFinal.bat
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlackGlassStart-Setup
+          path: OpenShellFork/Src/Setup/Final/OpenShellSetup*.exe
