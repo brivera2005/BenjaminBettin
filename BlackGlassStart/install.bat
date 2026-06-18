@@ -15,8 +15,11 @@ echo  Black Glass Start Menu
 echo  ======================
 echo.
 
-set "INSTALLER=%~dp0OpenShellSetup.exe"
+set "INSTALLER=%~dp0build\OpenShellSetup_4_4_199-blackglass.exe"
+set "FALLBACK=%~dp0OpenShellSetup.exe"
 set "DOWNLOAD_URL=https://github.com/Open-Shell/Open-Shell-Menu/releases/download/v4.4.198/OpenShellSetup_4_4_198.exe"
+
+if not exist "%INSTALLER%" set "INSTALLER=%FALLBACK%"
 
 if not exist "%INSTALLER%" (
     echo Downloading Open-Shell...
