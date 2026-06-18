@@ -60,3 +60,56 @@ export function outcomeLabel(outcome: BetOutcome): string {
       return 'Pending';
   }
 }
+
+export interface MonthSummary {
+  key: string;
+  label: string;
+  profit: number;
+  totalBets: number;
+  wins: number;
+  losses: number;
+  pushes: number;
+  pending: number;
+}
+
+const MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+});
+
+export function computeMonthSummaries(
+  bets: Pick<Bet, 'bet_date' | 'wager' | 'odds' | 'outcome'>[]
+): MonthSummary[] {
+  const map = new Map<string, MonthSummary>();
+
+  for (const bet of bets) {
+    const key = bet.bet_date.slice(0, 7);
+    const [year, month] = key.split('-').map(Number);
+    const label = MONTH_FORMATTER.format(new Date(year, month - 1, 1));
+
+    const existing = map.get(key) ?? {
+      key,
+      label,
+      profit: 0,
+      totalBets: 0,
+      wins: 0,
+      losses: 0,
+      pushes: 0,
+      pending: 0,
+    };
+
+    existing.totalBets += 1;
+    if (bet.outcome === 'win') existing.wins += 1;
+    else if (bet.outcome === 'loss') existing.losses += 1;
+    else if (bet.outcome === 'push') existing.pushes += 1;
+    else existing.pending += 1;
+
+    if (bet.outcome !== 'pending') {
+      existing.profit += calculateBetResult(bet.wager, bet.odds, bet.outcome);
+    }
+
+    map.set(key, existing);
+  }
+
+  return [...map.values()].sort((a, b) => b.key.localeCompare(a.key));
+}

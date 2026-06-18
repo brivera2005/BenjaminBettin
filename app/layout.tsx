@@ -18,6 +18,12 @@ export const metadata: Metadata = {
   description: 'Track your sports bets with a beautiful inline-editable ledger.',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
