@@ -1,44 +1,17 @@
 @echo off
-setlocal EnableDelayedExpansion
-
-net session >nul 2>&1
-if errorlevel 1 (
-    powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b
-)
-
 cd /d "%~dp0"
+echo Installing Black Glass Start...
 
-echo.
-echo  Black Glass Start Menu
-echo  ======================
-echo.
+taskkill /F /IM StartMenu.exe 2>nul
+taskkill /F /IM pythonw.exe 2>nul
+taskkill /F /IM BlackGlassStart.exe 2>nul
 
-echo Removing Open-Shell conflict...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0disable-openshell.ps1"
+python -m venv .venv 2>nul
+.venv\Scripts\pip install PyQt6 pywin32 -q
 
-echo Setting up Black Glass...
-if not exist ".venv\Scripts\python.exe" (
-    python -m venv .venv
-)
-call .venv\Scripts\activate.bat
-pip install -r requirements.txt -q
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v BlackGlassStart /t REG_SZ /d "%~dp0launch.bat" /f >nul
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$w = New-Object -ComObject WScript.Shell; ^
-     foreach ($t in @('%USERPROFILE%\Desktop\Black Glass Start.lnk', '%USERPROFILE%\Projects\Black Glass Start.lnk')) { ^
-       $d = Split-Path $t -Parent; if (-not (Test-Path $d)) { continue }; ^
-       $s = $w.CreateShortcut($t); $s.TargetPath = '%~dp0launch.bat'; $s.WorkingDirectory = '%~dp0'; $s.Save() ^
-     }"
+powershell -NoProfile -Command "Get-ChildItem '$env:LOCALAPPDATA\Packages\Microsoft.Windows.StartMenuExperienceHost*\LocalState\*.bin' -ErrorAction SilentlyContinue | Remove-Item -Force"
 
-echo Unpinning Windows Start clutter...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0unpin-windows.ps1"
-
-echo.
-echo Starting Black Glass...
-taskkill /F /IM pythonw.exe >nul 2>&1
-ping 127.0.0.1 -n 2 >nul
 start "" "%~dp0launch.bat"
-
-echo Done. Press Win for your menu.
-echo.
+echo Done. Press Win.

@@ -1,25 +1,8 @@
-# Black Glass Start Menu
+# Black Glass Start
 
-Smooth black glass start menu. **3×3 most-used apps.** Restart and shut down. That's it.
+Super simple start menu. One file.
 
-Open-Shell is disabled — it was causing the glitchy look.
+**Install:** double-click `install.bat`  
+**Press Win** — 3x3 apps, Restart, Shut down. Solid black UI. No blur. No Open-Shell.
 
-## Install
-
-Right-click **`install.bat`** → **Run as administrator**
-
-Press **Win** to open.
-
-## Build standalone EXE
-
-```bat
-build.bat
-```
-
-Output: `dist\BlackGlassStart.exe`
-
-## What's in the menu
-
-- Top 9 most-used apps (large icons, 3×3 grid)
-- Restart / Shut down
-- Nothing else — no search clutter, no pins, no sidebars
+**Run manually:** `launch.bat`

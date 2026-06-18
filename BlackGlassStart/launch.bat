@@ -1,13 +1,7 @@
 @echo off
-setlocal
 cd /d "%~dp0"
-
 if not exist ".venv\Scripts\pythonw.exe" (
-    if not exist ".venv\Scripts\python.exe" (
-        python -m venv .venv
-    )
-    call .venv\Scripts\activate.bat
-    pip install -r requirements.txt -q
+    python -m venv .venv
+    .venv\Scripts\pip install PyQt6 pywin32 -q
 )
-
-.venv\Scripts\pythonw.exe -m black_glass
+.venv\Scripts\pythonw.exe "%~dp0start.py"
