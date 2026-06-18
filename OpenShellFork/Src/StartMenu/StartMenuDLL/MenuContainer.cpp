@@ -1605,7 +1605,7 @@ static bool IgnoreUserAssistItem(const UserAssistItem& uaItem)
 	return false;
 }
 
-static void ArrangeRecentProgramsGrid( std::vector<CMenuContainer::MenuItem> &items )
+void CMenuContainer::ArrangeRecentProgramsGrid( std::vector<MenuItem> &items )
 {
 	if (!GetSettingBool(L"RecentGridLayout") || items.empty())
 		return;
@@ -1613,7 +1613,7 @@ static void ArrangeRecentProgramsGrid( std::vector<CMenuContainer::MenuItem> &it
 	const int cols = 3;
 	for (size_t i = 0; i < items.size(); i++)
 	{
-		CMenuContainer::MenuItem &item = items[i];
+		MenuItem &item = items[i];
 		item.bRecentGrid = true;
 		item.bInline = true;
 		item.bInlineFirst = (i % cols == 0);

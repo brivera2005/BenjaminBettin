@@ -702,6 +702,7 @@ private:
 
 	int AddSearchItems( const std::vector<SearchItem> &items, const CString &categoryName, unsigned int categoryHash, int originalCount );
 	void GetRecentPrograms( std::vector<MenuItem> &items, int maxCount );
+	static void ArrangeRecentProgramsGrid( std::vector<MenuItem> &items );
 
 	// additional commands for the context menu
 	enum
