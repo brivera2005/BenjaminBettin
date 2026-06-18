@@ -11,7 +11,8 @@ from start_menu import __version__
 from start_menu.keyboard_hook import WinKeyHook
 from start_menu.menu_window import StartMenuWindow
 from start_menu.settings import AppSettings
-from start_menu.startup import is_startup_enabled
+from start_menu.setup import ensure_installed
+from start_menu.startup import is_startup_enabled, set_startup_enabled
 
 
 MUTEX_NAME = "SimpleStartMenu_SingleInstance_Mutex"
@@ -20,9 +21,13 @@ MUTEX_NAME = "SimpleStartMenu_SingleInstance_Mutex"
 class StartMenuApp:
     def __init__(self) -> None:
         self.settings = AppSettings.load()
+        self.settings = ensure_installed(self.settings)
+
         if self.settings.launch_at_startup != is_startup_enabled():
-            self.settings.launch_at_startup = is_startup_enabled()
-            self.settings.save()
+            try:
+                set_startup_enabled(self.settings.launch_at_startup)
+            except RuntimeError:
+                pass
 
         self.app = QApplication(sys.argv)
         self.app.setApplicationName("Simple Start Menu")

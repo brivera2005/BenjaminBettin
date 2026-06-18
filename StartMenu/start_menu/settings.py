@@ -14,7 +14,7 @@ class AppSettings:
     theme: str = "dark"
     max_recent_items: int = 12
     intercept_win_key: bool = True
-    launch_at_startup: bool = False
+    launch_at_startup: bool = True
     menu_width: int = 520
     menu_height: int = 560
     show_power_actions: bool = True

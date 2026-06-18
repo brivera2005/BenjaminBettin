@@ -14,7 +14,9 @@ Inspired by Start11, but intentionally minimal — no pinned apps grid, no searc
 
 ## Quick start
 
-Double-click **`run.bat`** — it creates a venv, installs dependencies, and launches the app.
+**First time:** double-click **`install.bat`** — creates shortcuts, enables startup, and launches the app.
+
+**After that:** it starts automatically when Windows boots. You can also double-click **`launch.bat`** or the **Simple Start Menu** shortcut on your Desktop / Projects folder.
 
 Or manually:
 
@@ -42,7 +44,7 @@ Stored at `%LOCALAPPDATA%\SimpleStartMenu\settings.json`
 | Theme | Dark | Dark or light menu |
 | Recent items | 12 | How many items to show (4–24) |
 | Win key | On | Replace Windows start with this menu |
-| Launch at sign-in | Off | Add to Windows startup |
+| Launch at sign-in | On | Add to Windows startup |
 | Power actions | On | Sleep / Restart / Shut down buttons |
 
 ## Notes

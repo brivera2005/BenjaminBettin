@@ -1,18 +1,21 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
+
 import winreg
 
 
 APP_NAME = "SimpleStartMenu"
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+START_MENU_DIR = Path(__file__).resolve().parent.parent
+LAUNCHER = START_MENU_DIR / "launch.bat"
 
 
 def _executable_path() -> str:
     if getattr(sys, "frozen", False):
         return f'"{sys.executable}"'
-    script = sys.argv[0]
-    return f'"{sys.executable}" "{script}"'
+    return f'"{LAUNCHER}"'
 
 
 def is_startup_enabled() -> bool:
