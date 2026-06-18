@@ -1,7 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-:: Request admin if needed
 net session >nul 2>&1
 if errorlevel 1 (
     powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
@@ -15,51 +14,31 @@ echo  Black Glass Start Menu
 echo  ======================
 echo.
 
-set "INSTALLER=%~dp0build\OpenShellSetup_4_4_199-blackglass.exe"
-set "FALLBACK=%~dp0OpenShellSetup.exe"
-set "DOWNLOAD_URL=https://github.com/Open-Shell/Open-Shell-Menu/releases/download/v4.4.198/OpenShellSetup_4_4_198.exe"
+echo Removing Open-Shell conflict...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0disable-openshell.ps1"
 
-if not exist "%INSTALLER%" set "INSTALLER=%FALLBACK%"
-
-if not exist "%INSTALLER%" (
-    echo Downloading Open-Shell...
-    powershell -NoProfile -Command ^
-        "$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '%DOWNLOAD_URL%' -OutFile '%INSTALLER%'"
-    if errorlevel 1 (
-        echo Download failed.
-        exit /b 1
-    )
+echo Setting up Black Glass...
+if not exist ".venv\Scripts\python.exe" (
+    python -m venv .venv
 )
+call .venv\Scripts\activate.bat
+pip install -r requirements.txt -q
 
-echo Installing Open-Shell...
-"%INSTALLER%" /quiet
-if errorlevel 1 (
-    echo Install failed. Try running as administrator.
-    exit /b 1
-)
-
-echo Applying Black Glass settings...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0apply-settings.ps1"
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0unpin-windows.ps1"
-
-echo Creating shortcuts...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$w = New-Object -ComObject WScript.Shell; ^
-     $targets = @('%USERPROFILE%\Desktop\Black Glass Start.lnk', '%USERPROFILE%\Projects\Black Glass Start.lnk'); ^
-     foreach ($t in $targets) { ^
+     foreach ($t in @('%USERPROFILE%\Desktop\Black Glass Start.lnk', '%USERPROFILE%\Projects\Black Glass Start.lnk')) { ^
        $d = Split-Path $t -Parent; if (-not (Test-Path $d)) { continue }; ^
-       $s = $w.CreateShortcut($t); ^
-       $s.TargetPath = '%ProgramFiles%\Open-Shell\StartMenu.exe'; ^
-       $s.Arguments = ''; ^
-       $s.WorkingDirectory = '%ProgramFiles%\Open-Shell'; ^
-       $s.Description = 'Black Glass Start Menu Settings'; ^
-       $s.Save() ^
+       $s = $w.CreateShortcut($t); $s.TargetPath = '%~dp0launch.bat'; $s.WorkingDirectory = '%~dp0'; $s.Save() ^
      }"
 
+echo Unpinning Windows Start clutter...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0unpin-windows.ps1"
+
 echo.
-echo Done! Press Win or click Start - you should see the Black Glass menu.
-echo Top 9 most-used apps appear in a 3x3 grid after installing the fork build.
+echo Starting Black Glass...
+taskkill /F /IM pythonw.exe >nul 2>&1
+ping 127.0.0.1 -n 2 >nul
+start "" "%~dp0launch.bat"
+
+echo Done. Press Win for your menu.
 echo.
-echo Restarting Explorer to apply changes...
-taskkill /F /IM explorer.exe >nul 2>&1
-start explorer.exe

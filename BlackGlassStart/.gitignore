@@ -1,2 +1,7 @@
-OpenShellSetup.exe
+.venv/
+dist/
 build/
+*.spec
+__pycache__/
+build/
+OpenShellSetup.exe
