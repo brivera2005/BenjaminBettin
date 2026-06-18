@@ -13,6 +13,7 @@ from start_menu.menu_window import StartMenuWindow
 from start_menu.settings import AppSettings
 from start_menu.setup import ensure_installed
 from start_menu.startup import is_startup_enabled, set_startup_enabled
+from start_menu.windows_start import block_native_start_menu, unpin_windows_start
 
 
 MUTEX_NAME = "SimpleStartMenu_SingleInstance_Mutex"
@@ -22,6 +23,11 @@ class StartMenuApp:
     def __init__(self) -> None:
         self.settings = AppSettings.load()
         self.settings = ensure_installed(self.settings)
+
+        if not self.settings.unpin_windows_done:
+            unpin_windows_start()
+            self.settings.unpin_windows_done = True
+            self.settings.save()
 
         if self.settings.launch_at_startup != is_startup_enabled():
             try:
@@ -39,12 +45,13 @@ class StartMenuApp:
         self.menu.settings_changed.connect(self._on_settings_changed)
 
         self.hook = WinKeyHook()
-        self.hook.win_pressed.connect(self.toggle_menu)
+        self.hook.win_pressed.connect(self._on_win_key)
         self.hook.set_enabled(self.settings.intercept_win_key)
 
         self._menu_visible = False
         self._setup_tray()
-        self._setup_hook_timer()
+        self._setup_native_blocker()
+        self.hook.start()
 
     def _setup_tray(self) -> None:
         icon = self._create_tray_icon()
@@ -55,6 +62,10 @@ class StartMenuApp:
         open_action = QAction("Open Start Menu", self.app)
         open_action.triggered.connect(self.show_menu)
         tray_menu.addAction(open_action)
+
+        unpin_action = QAction("Unpin Windows Start items", self.app)
+        unpin_action.triggered.connect(unpin_windows_start)
+        tray_menu.addAction(unpin_action)
 
         tray_menu.addSeparator()
 
@@ -77,27 +88,42 @@ class StartMenuApp:
         painter.end()
         return QIcon(pixmap)
 
-    def _setup_hook_timer(self) -> None:
-        self._hook_timer = QTimer()
-        self._hook_timer.timeout.connect(self._pump_messages)
-        self._hook_timer.start(10)
-        QTimer.singleShot(0, self._start_hook)
+    def _setup_native_blocker(self) -> None:
+        self._block_timer = QTimer()
+        self._block_timer.timeout.connect(self._check_native_start)
+        self._block_timer.start(150)
 
-    def _start_hook(self) -> None:
+    def _check_native_start(self) -> None:
+        if not self.settings.block_native_start:
+            return
+        if self.menu.isVisible():
+            return
         try:
-            self.hook.start()
-        except RuntimeError:
-            self.settings.intercept_win_key = False
-            self.settings.save()
-            self.tray.showMessage(
-                "Simple Start Menu",
-                "Could not capture the Windows key. Use the tray icon instead.",
-                QSystemTrayIcon.MessageIcon.Warning,
-                5000,
-            )
+            import win32gui
 
-    def _pump_messages(self) -> None:
-        self.app.processEvents()
+            blocked = False
+
+            def callback(hwnd, _):
+                nonlocal blocked
+                if not win32gui.IsWindowVisible(hwnd):
+                    return True
+                title = win32gui.GetWindowText(hwnd)
+                cls = win32gui.GetClassName(hwnd)
+                if cls == "Windows.UI.Core.CoreWindow" and title == "Start":
+                    blocked = True
+                return True
+
+            win32gui.EnumWindows(callback, None)
+            if blocked:
+                block_native_start_menu()
+                self.show_menu()
+        except Exception:
+            pass
+
+    def _on_win_key(self) -> None:
+        if self.settings.block_native_start:
+            block_native_start_menu()
+        self.toggle_menu()
 
     def _tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
@@ -133,7 +159,7 @@ class StartMenuApp:
     def run(self) -> int:
         self.tray.showMessage(
             "Simple Start Menu",
-            "Press the Windows key or click the tray icon to open.",
+            "Win key and Start button now open your custom menu.",
             QSystemTrayIcon.MessageIcon.Information,
             4000,
         )
@@ -142,7 +168,7 @@ class StartMenuApp:
 
 def acquire_single_instance() -> bool:
     kernel32 = ctypes.windll.kernel32
-    mutex = kernel32.CreateMutexW(None, False, MUTEX_NAME)
+    kernel32.CreateMutexW(None, False, MUTEX_NAME)
     last_error = kernel32.GetLastError()
     return last_error != 183
 

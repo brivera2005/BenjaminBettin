@@ -1,29 +1,66 @@
 from __future__ import annotations
 
-DARK_THEME = """
-QWidget#StartMenuRoot {
-    background-color: rgba(32, 32, 32, 245);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+BASE_DARK = """
+* {
+    font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
 }
 
-QLabel#TitleLabel {
+QWidget#StartMenuRoot {
+    background-color: rgba(28, 28, 28, 248);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 14px;
+}
+
+QLineEdit#SearchBox {
+    background-color: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.18);
+    border-radius: 6px;
     color: #ffffff;
-    font-size: 15px;
+    font-size: 14px;
+    padding: 10px 14px;
+}
+
+QLineEdit#SearchBox:focus {
+    border-bottom: 2px solid #0078d4;
+    background-color: rgba(255, 255, 255, 0.09);
+}
+
+QLabel#SectionTitle {
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 13px;
     font-weight: 600;
 }
 
-QLabel#SubtitleLabel {
-    color: rgba(255, 255, 255, 0.55);
+QLabel#UserLabel {
+    color: rgba(255, 255, 255, 0.85);
     font-size: 12px;
 }
 
 QLabel#EmptyLabel {
     color: rgba(255, 255, 255, 0.45);
-    font-size: 13px;
+    font-size: 12px;
 }
 
-QPushButton#RecentButton {
+QPushButton#AppTile {
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 11px;
+    padding: 8px 4px;
+    text-align: center;
+}
+
+QPushButton#AppTile:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+QPushButton#AppTile:pressed {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+QPushButton#ListItem {
     background-color: transparent;
     border: none;
     border-radius: 8px;
@@ -33,39 +70,49 @@ QPushButton#RecentButton {
     text-align: left;
 }
 
-QPushButton#RecentButton:hover {
+QPushButton#ListItem:hover {
     background-color: rgba(255, 255, 255, 0.08);
 }
 
-QPushButton#RecentButton:pressed {
-    background-color: rgba(255, 255, 255, 0.12);
-}
-
-QPushButton#IconButton {
+QPushButton#FooterButton {
     background-color: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     color: #ffffff;
     font-size: 12px;
-    padding: 8px 14px;
+    min-height: 34px;
+    padding: 6px 14px;
 }
 
-QPushButton#IconButton:hover {
+QPushButton#FooterButton:hover {
     background-color: rgba(255, 255, 255, 0.12);
 }
 
-QPushButton#PowerButton {
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    color: #ffffff;
+QPushButton#TextLink {
+    background: transparent;
+    border: none;
+    color: #60a5fa;
     font-size: 12px;
-    min-width: 72px;
-    padding: 8px 12px;
+    padding: 4px 0;
+    text-align: left;
 }
 
-QPushButton#PowerButton:hover {
-    background-color: rgba(255, 255, 255, 0.12);
+QPushButton#TextLink:hover {
+    color: #93c5fd;
+}
+
+QPushButton#BackButton {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+QPushButton#BackButton:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
 }
 
 QScrollArea {
@@ -76,7 +123,6 @@ QScrollArea {
 QScrollBar:vertical {
     background: transparent;
     width: 8px;
-    margin: 0;
 }
 
 QScrollBar::handle:vertical {
@@ -89,10 +135,13 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     height: 0;
 }
 
-QWidget#SettingsRoot {
-    background-color: rgba(32, 32, 32, 250);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+QWidget#Divider {
+    background-color: rgba(255, 255, 255, 0.08);
+    max-width: 1px;
+}
+
+QWidget#SettingsPanel {
+    background-color: rgba(24, 24, 24, 250);
 }
 
 QLabel#SettingsTitle {
@@ -145,44 +194,79 @@ QPushButton#PrimaryButton:hover {
     background-color: #1084d8;
 }
 
-QPushButton#SecondaryButton {
-    background-color: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 6px;
+QMenu {
+    background-color: rgba(32, 32, 32, 250);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 8px;
     color: #ffffff;
-    font-size: 13px;
-    padding: 8px 16px;
+    padding: 4px;
 }
 
-QPushButton#SecondaryButton:hover {
-    background-color: rgba(255, 255, 255, 0.12);
+QMenu::item {
+    padding: 8px 24px 8px 12px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: rgba(255, 255, 255, 0.10);
 }
 """
 
-LIGHT_THEME = """
-QWidget#StartMenuRoot {
-    background-color: rgba(243, 243, 243, 250);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
+BASE_LIGHT = """
+* {
+    font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
 }
 
-QLabel#TitleLabel {
+QWidget#StartMenuRoot {
+    background-color: rgba(245, 245, 245, 252);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+}
+
+QLineEdit#SearchBox {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.18);
+    border-radius: 6px;
     color: #1a1a1a;
-    font-size: 15px;
+    font-size: 14px;
+    padding: 10px 14px;
+}
+
+QLineEdit#SearchBox:focus {
+    border-bottom: 2px solid #0078d4;
+}
+
+QLabel#SectionTitle {
+    color: rgba(0, 0, 0, 0.88);
+    font-size: 13px;
     font-weight: 600;
 }
 
-QLabel#SubtitleLabel {
-    color: rgba(0, 0, 0, 0.55);
+QLabel#UserLabel {
+    color: rgba(0, 0, 0, 0.75);
     font-size: 12px;
 }
 
 QLabel#EmptyLabel {
     color: rgba(0, 0, 0, 0.45);
-    font-size: 13px;
+    font-size: 12px;
 }
 
-QPushButton#RecentButton {
+QPushButton#AppTile {
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #1a1a1a;
+    font-size: 11px;
+    padding: 8px 4px;
+}
+
+QPushButton#AppTile:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+QPushButton#ListItem {
     background-color: transparent;
     border: none;
     border-radius: 8px;
@@ -192,39 +276,43 @@ QPushButton#RecentButton {
     text-align: left;
 }
 
-QPushButton#RecentButton:hover {
+QPushButton#ListItem:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-QPushButton#RecentButton:pressed {
-    background-color: rgba(0, 0, 0, 0.08);
-}
-
-QPushButton#IconButton {
+QPushButton#FooterButton {
     background-color: rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 8px;
     color: #1a1a1a;
     font-size: 12px;
-    padding: 8px 14px;
+    min-height: 34px;
+    padding: 6px 14px;
 }
 
-QPushButton#IconButton:hover {
+QPushButton#FooterButton:hover {
     background-color: rgba(0, 0, 0, 0.08);
 }
 
-QPushButton#PowerButton {
-    background-color: rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 8px;
-    color: #1a1a1a;
+QPushButton#TextLink {
+    background: transparent;
+    border: none;
+    color: #0067c0;
     font-size: 12px;
-    min-width: 72px;
-    padding: 8px 12px;
+    padding: 4px 0;
 }
 
-QPushButton#PowerButton:hover {
-    background-color: rgba(0, 0, 0, 0.08);
+QPushButton#BackButton {
+    background: transparent;
+    border: none;
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 13px;
+    padding: 6px 8px;
+}
+
+QPushButton#BackButton:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
 }
 
 QScrollArea {
@@ -235,23 +323,20 @@ QScrollArea {
 QScrollBar:vertical {
     background: transparent;
     width: 8px;
-    margin: 0;
 }
 
 QScrollBar::handle:vertical {
     background: rgba(0, 0, 0, 0.18);
     border-radius: 4px;
-    min-height: 24px;
 }
 
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-    height: 0;
+QWidget#Divider {
+    background-color: rgba(0, 0, 0, 0.08);
+    max-width: 1px;
 }
 
-QWidget#SettingsRoot {
+QWidget#SettingsPanel {
     background-color: rgba(255, 255, 255, 250);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 12px;
 }
 
 QLabel#SettingsTitle {
@@ -300,24 +385,19 @@ QPushButton#PrimaryButton {
     padding: 8px 16px;
 }
 
-QPushButton#PrimaryButton:hover {
-    background-color: #1084d8;
-}
-
-QPushButton#SecondaryButton {
-    background-color: rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    border-radius: 6px;
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    border-radius: 8px;
     color: #1a1a1a;
-    font-size: 13px;
-    padding: 8px 16px;
+    padding: 4px;
 }
 
-QPushButton#SecondaryButton:hover {
-    background-color: rgba(0, 0, 0, 0.08);
+QMenu::item:selected {
+    background-color: rgba(0, 0, 0, 0.06);
 }
 """
 
 
 def theme_stylesheet(theme: str) -> str:
-    return LIGHT_THEME if theme == "light" else DARK_THEME
+    return BASE_LIGHT if theme == "light" else BASE_DARK

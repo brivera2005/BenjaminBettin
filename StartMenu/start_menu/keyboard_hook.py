@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import threading
 from ctypes import wintypes
 
 from PyQt6.QtCore import QObject, pyqtSignal
@@ -14,6 +15,7 @@ WM_SYSKEYUP = 0x0105
 VK_LWIN = 0x5B
 VK_RWIN = 0x5C
 HC_ACTION = 0
+WM_QUIT = 0x0012
 
 
 class KBDLLHOOKSTRUCT(ctypes.Structure):
@@ -40,17 +42,36 @@ class WinKeyHook(QObject):
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._enabled = True
+        self._running = False
         self._hook_id = None
+        self._thread: threading.Thread | None = None
         self._proc = LowLevelKeyboardProc(self._handle_event)
         self._user32 = ctypes.windll.user32
         self._kernel32 = ctypes.windll.kernel32
+        self._thread_id = None
 
     def set_enabled(self, enabled: bool) -> None:
         self._enabled = enabled
 
     def start(self) -> None:
-        if self._hook_id:
+        if self._thread and self._thread.is_alive():
             return
+        self._running = True
+        self._thread = threading.Thread(target=self._hook_loop, name="WinKeyHook", daemon=True)
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._running = False
+        if self._thread_id:
+            self._user32.PostThreadMessageW(self._thread_id, WM_QUIT, 0, 0)
+        if self._thread:
+            self._thread.join(timeout=2)
+        self._thread = None
+        self._thread_id = None
+        self._hook_id = None
+
+    def _hook_loop(self) -> None:
+        self._thread_id = self._kernel32.GetCurrentThreadId()
         module_handle = self._kernel32.GetModuleHandleW(None)
         self._hook_id = self._user32.SetWindowsHookExW(
             WH_KEYBOARD_LL,
@@ -59,9 +80,17 @@ class WinKeyHook(QObject):
             0,
         )
         if not self._hook_id:
-            raise RuntimeError("Failed to install keyboard hook")
+            self._running = False
+            return
 
-    def stop(self) -> None:
+        msg = wintypes.MSG()
+        while self._running:
+            result = self._user32.GetMessageW(ctypes.byref(msg), None, 0, 0)
+            if result == 0 or result == -1:
+                break
+            self._user32.TranslateMessage(ctypes.byref(msg))
+            self._user32.DispatchMessageW(ctypes.byref(msg))
+
         if self._hook_id:
             self._user32.UnhookWindowsHookEx(self._hook_id)
             self._hook_id = None
@@ -77,4 +106,6 @@ class WinKeyHook(QObject):
                     return 1
                 if is_up:
                     return 1
-        return self._user32.CallNextHookEx(self._hook_id, n_code, w_param, l_param)
+        if self._hook_id:
+            return self._user32.CallNextHookEx(self._hook_id, n_code, w_param, l_param)
+        return 0

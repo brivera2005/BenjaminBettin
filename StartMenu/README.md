@@ -1,30 +1,27 @@
 # Simple Start Menu
 
-A lightweight Windows 11-style start menu replacement. Press **Win** to open a clean panel showing your recently used apps and files, plus a small settings panel.
-
-Inspired by Start11, but intentionally minimal — no pinned apps grid, no search clutter, no ads.
+A Start11-style Windows 11 start menu replacement. Clean, fast, and fully under your control.
 
 ## Features
 
-- **Recently used** — reads Windows Recent shortcuts and shows apps/files you've actually opened
-- **Win key replacement** — intercepts the Windows key and opens this menu instead
-- **Settings** — theme (dark/light), item count, startup, power actions
-- **System tray** — runs in the background; click the tray icon if Win key capture fails
-- **Standalone** — build a single `.exe` with `build.bat`
+- **Start11 layout** — pinned grid + recommended recent items, search bar, all apps view
+- **Unpins Windows defaults** — clears Microsoft's pinned clutter on install
+- **Blocks native Start** — Win key and Start button open this menu instead
+- **Pin/unpin apps** — right-click any app to pin it; starts with a clean slate
+- **Search** — filter 70+ installed apps instantly
+- **Settings** — theme, item counts, startup, power menu
+- **Auto-start** — launches at Windows sign-in
 
 ## Quick start
 
-**First time:** double-click **`install.bat`** — creates shortcuts, enables startup, and launches the app.
+Double-click **`install.bat`** once. After that, press **Win** or click the **Start button**.
 
-**After that:** it starts automatically when Windows boots. You can also double-click **`launch.bat`** or the **Simple Start Menu** shortcut on your Desktop / Projects folder.
+Shortcuts live on your Desktop and in `C:\Users\Benjamin\Projects\`.
 
-Or manually:
+## Manual run
 
 ```bat
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-python -m start_menu
+launch.bat
 ```
 
 ## Build standalone exe
@@ -33,27 +30,11 @@ python -m start_menu
 build.bat
 ```
 
-Output: `dist\SimpleStartMenu.exe`
-
 ## Settings
 
 Stored at `%LOCALAPPDATA%\SimpleStartMenu\settings.json`
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Theme | Dark | Dark or light menu |
-| Recent items | 12 | How many items to show (4–24) |
-| Win key | On | Replace Windows start with this menu |
-| Launch at sign-in | On | Add to Windows startup |
-| Power actions | On | Sleep / Restart / Shut down buttons |
-
-## Notes
-
-- The app must stay running in the system tray for Win key interception to work.
-- Recent items come from `%APPDATA%\Microsoft\Windows\Recent`.
-- If Windows still opens its own Start menu alongside this one, turn off Win key interception in settings and use the tray icon instead.
-
 ## Requirements
 
 - Windows 10/11
-- Python 3.10+ (for development); the built `.exe` needs no Python installed
+- Python 3.10+ (for dev); built `.exe` needs no Python

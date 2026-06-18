@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 
@@ -12,12 +12,16 @@ CONFIG_FILE = CONFIG_DIR / "settings.json"
 @dataclass
 class AppSettings:
     theme: str = "dark"
-    max_recent_items: int = 12
+    max_recent_items: int = 6
+    max_pinned_items: int = 18
     intercept_win_key: bool = True
+    block_native_start: bool = True
     launch_at_startup: bool = True
-    menu_width: int = 520
-    menu_height: int = 560
+    menu_width: int = 680
+    menu_height: int = 740
     show_power_actions: bool = True
+    pinned_apps: list[str] = field(default_factory=list)
+    unpin_windows_done: bool = False
 
     @classmethod
     def load(cls) -> AppSettings:
@@ -37,3 +41,13 @@ class AppSettings:
             json.dumps(asdict(self), indent=2),
             encoding="utf-8",
         )
+
+    def pin_app(self, path: str) -> None:
+        if path not in self.pinned_apps:
+            self.pinned_apps.append(path)
+            self.save()
+
+    def unpin_app(self, path: str) -> None:
+        if path in self.pinned_apps:
+            self.pinned_apps.remove(path)
+            self.save()
