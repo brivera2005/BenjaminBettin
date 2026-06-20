@@ -48,6 +48,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+# android / capacitor
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+android/captures/
+*.apk
+*.aab
+mobile/build/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

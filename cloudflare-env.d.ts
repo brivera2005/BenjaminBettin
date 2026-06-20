@@ -6,4 +6,5 @@ interface CloudflareEnv {
   GOOGLE_CLIENT_SECRET: string;
   AUTH_SECRET: string;
   APP_URL: string;
+  ODDS_API_KEY?: string;
 }

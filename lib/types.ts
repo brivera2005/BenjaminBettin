@@ -5,6 +5,10 @@ export interface User {
   email: string;
   name: string | null;
   avatar_url: string | null;
+  is_premium?: boolean;
+  premium_grandfathered_at?: string | null;
+  /** Resolved on /api/auth/me — DB flag or grandfather list. */
+  premium?: boolean;
 }
 
 export interface Bet {

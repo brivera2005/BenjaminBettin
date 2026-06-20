@@ -1,55 +1,59 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronDown, Plus, Trash2, Zap } from 'lucide-react';
+import { Search, Zap } from 'lucide-react';
+import { AutoGradeButton, type GradeResultItem } from '@/components/AutoGradeButton';
+import { AppTabs, type AppTab } from '@/components/AppTabs';
 import { AuthButton } from '@/components/AuthButton';
-import { BetPagination, PAGE_SIZE } from '@/components/BetPagination';
-import { MonthlySummary } from '@/components/MonthlySummary';
+import {
+  betToCompose,
+  composeToInput,
+  type ComposeValues,
+} from '@/components/BetComposeForm';
+import { BetCompactRow } from '@/components/BetCompactRow';
+import { BetInlineEditRow } from '@/components/BetInlineEditRow';
+import { BetQuickAddRow } from '@/components/BetQuickAddRow';
+import { HistoryView } from '@/components/HistoryView';
+import { DisplayModeProvider } from '@/components/DisplayModeContext';
+import { MobileShellExtras } from '@/components/MobileShellExtras';
 import { RunningTotalBanner } from '@/components/RunningTotalBanner';
 import { SignInPrompt } from '@/components/SignInPrompt';
+import { Toast, type ToastTone } from '@/components/Toast';
+import { WeekPagination } from '@/components/WeekPagination';
 import { useAuth } from '@/components/AuthProvider';
+import { loadBetDefaults, saveBetDefaults } from '@/lib/betDefaults';
+import { needsManualGrading } from '@/lib/betParse';
+import { computeDailyRecaps, computeOverallStats, monthSummariesWithPrior } from '@/lib/betStats';
+import { totalWithBaseline } from '@/lib/baseline';
 import {
-  calculateBetResult,
   calculateRunningTotal,
-  computeMonthSummaries,
-  formatCurrency,
 } from '@/lib/betMath';
 import type { Bet, BetInput, BetOutcome } from '@/lib/types';
-import { cn } from '@/lib/utils';
-
-const OUTCOMES: { value: BetOutcome; label: string }[] = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'win', label: 'Win' },
-  { value: 'loss', label: 'Loss' },
-  { value: 'push', label: 'Push' },
-];
-
-function outcomeStyles(outcome: BetOutcome) {
-  switch (outcome) {
-    case 'win':
-      return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-    case 'loss':
-      return 'text-stone-400 bg-stone-500/10 border-stone-500/20';
-    case 'push':
-      return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-    default:
-      return 'text-violet-300 bg-violet-500/10 border-violet-500/20';
-  }
-}
-
-function resultStyles(result: number, outcome: BetOutcome) {
-  if (outcome === 'pending') return 'text-stone-500';
-  if (result > 0) return 'text-emerald-400';
-  if (result < 0) return 'text-stone-400';
-  return 'text-amber-400';
-}
+import {
+  betsInWeek,
+  currentWeekKey,
+  groupBetsIntoWeeks,
+  todayIso,
+  weekKeyFromDate,
+  weekPageForMonth,
+} from '@/lib/weekUtils';
 
 export default function BetTracker() {
   const { user, loading: authLoading } = useAuth();
   const [bets, setBets] = useState<Bet[]>([]);
   const [loadingBets, setLoadingBets] = useState(false);
-  const [page, setPage] = useState(1);
+  const [weekPage, setWeekPage] = useState(0);
+  const [activeTab, setActiveTab] = useState<AppTab>('bets');
+  const [weekSearch, setWeekSearch] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; tone: ToastTone } | null>(null);
+  const [defaults, setDefaults] = useState(loadBetDefaults);
+  const [autoGradeMissedIds, setAutoGradeMissedIds] = useState<Set<string>>(() => new Set());
   const saveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const showToast = useCallback((message: string, tone: ToastTone = 'info') => {
+    setToast({ message, tone });
+  }, []);
 
   const loadBets = useCallback(async () => {
     setLoadingBets(true);
@@ -74,43 +78,92 @@ export default function BetTracker() {
   useEffect(() => {
     const timers = saveTimers.current;
     return () => {
-      for (const timer of timers.values()) {
-        clearTimeout(timer);
-      }
+      for (const timer of timers.values()) clearTimeout(timer);
     };
   }, []);
 
-  const runningTotal = useMemo(() => calculateRunningTotal(bets), [bets]);
+  const trackedProfit = useMemo(() => calculateRunningTotal(bets), [bets]);
+  const runningTotal = useMemo(
+    () => totalWithBaseline(trackedProfit),
+    [trackedProfit]
+  );
   const settledCount = useMemo(
-    () => bets.filter((bet) => bet.outcome !== 'pending').length,
+    () => bets.filter((b) => b.outcome !== 'pending').length,
     [bets]
   );
-  const winCount = useMemo(
-    () => bets.filter((bet) => bet.outcome === 'win').length,
-    [bets]
+  const winCount = useMemo(() => bets.filter((b) => b.outcome === 'win').length, [bets]);
+  const lossCount = useMemo(() => bets.filter((b) => b.outcome === 'loss').length, [bets]);
+  const winRate = useMemo(() => computeOverallStats(bets).winRate, [bets]);
+  const dailyRecaps = useMemo(() => computeDailyRecaps(bets, todayIso()), [bets]);
+  const pendingCount = useMemo(() => bets.filter((b) => b.outcome === 'pending').length, [bets]);
+  const monthSummaries = useMemo(() => monthSummariesWithPrior(bets), [bets]);
+  const lastBet = bets[0] ?? null;
+
+  const weeks = useMemo(() => groupBetsIntoWeeks(bets), [bets]);
+  const totalWeeks = weeks.length;
+  const currentWeek = weeks[weekPage] ?? weeks[0];
+  const weekBetsRaw = useMemo(
+    () => (currentWeek ? betsInWeek(bets, currentWeek) : []),
+    [bets, currentWeek]
   );
-  const lossCount = useMemo(
-    () => bets.filter((bet) => bet.outcome === 'loss').length,
-    [bets]
+  const weekBets = useMemo(() => {
+    const q = weekSearch.trim().toLowerCase();
+    if (!q) return weekBetsRaw;
+    return weekBetsRaw.filter((b) => b.bet.toLowerCase().includes(q));
+  }, [weekBetsRaw, weekSearch]);
+  const isCurrentWeek = currentWeek?.key === currentWeekKey();
+
+  const showManualLegend = useMemo(
+    () =>
+      weekBetsRaw.some((b) =>
+        needsManualGrading(b, autoGradeMissedIds.has(b.id)).manual
+      ),
+    [weekBetsRaw, autoGradeMissedIds]
   );
-  const monthSummaries = useMemo(() => computeMonthSummaries(bets), [bets]);
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(bets.length / PAGE_SIZE)),
-    [bets.length]
-  );
-  const paginatedBets = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return bets.slice(start, start + PAGE_SIZE);
-  }, [bets, page]);
 
   useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
+    if (weekPage >= totalWeeks && totalWeeks > 0) setWeekPage(totalWeeks - 1);
+  }, [weekPage, totalWeeks]);
+
+  const jumpToToday = useCallback(() => {
+    const key = currentWeekKey();
+    const idx = weeks.findIndex((w) => w.key === key);
+    if (idx >= 0) setWeekPage(idx);
+  }, [weeks]);
+
+  const jumpToMonth = useCallback(
+    (monthKey: string) => {
+      if (monthKey.startsWith('prior-')) return;
+      setActiveTab('bets');
+      setWeekPage(weekPageForMonth(weeks, monthKey));
+    },
+    [weeks]
+  );
+
+  const handleAutoGraded = useCallback(
+    async (payload: { graded: number; skipped: number; results: GradeResultItem[] }) => {
+      const missed = new Set(
+        payload.results.filter((r) => !r.outcome).map((r) => r.betId)
+      );
+      setAutoGradeMissedIds(missed);
+      await loadBets();
+      if (payload.graded > 0) {
+        showToast(
+          `Graded ${payload.graded} bet${payload.graded !== 1 ? 's' : ''}${payload.skipped > 0 ? ` · ${payload.skipped} highlighted yellow` : ''}`,
+          'success'
+        );
+      } else if (payload.skipped > 0) {
+        showToast(`${payload.skipped} bet${payload.skipped !== 1 ? 's' : ''} need manual grading`, 'info');
+      } else {
+        showToast('No pending bets matched finished games', 'info');
+      }
+    },
+    [loadBets, showToast]
+  );
 
   const persistUpdate = useCallback((id: string, patch: BetInput) => {
     const existing = saveTimers.current.get(id);
     if (existing) clearTimeout(existing);
-
     saveTimers.current.set(
       id,
       setTimeout(async () => {
@@ -129,11 +182,7 @@ export default function BetTracker() {
       setBets((current) =>
         current.map((bet) =>
           bet.id === id
-            ? {
-                ...bet,
-                ...patch,
-                updated_at: new Date().toISOString(),
-              }
+            ? { ...bet, ...patch, updated_at: new Date().toISOString() }
             : bet
         )
       );
@@ -142,62 +191,74 @@ export default function BetTracker() {
     [persistUpdate]
   );
 
-  const addBet = useCallback(async () => {
-    const tempId = `temp-${crypto.randomUUID()}`;
-    const now = new Date().toISOString();
-    const optimistic: Bet = {
-      id: tempId,
-      user_id: user?.id ?? '',
-      bet_date: now.slice(0, 10),
-      bet: '',
-      wager: 0,
-      odds: '-110',
-      outcome: 'pending',
-      created_at: now,
-      updated_at: now,
-    };
+  const setOutcome = useCallback(
+    (id: string, outcome: BetOutcome) => {
+      updateBet(id, { outcome });
+      if (outcome !== 'pending') {
+        setAutoGradeMissedIds((prev) => {
+          if (!prev.has(id)) return prev;
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }
+    },
+    [updateBet]
+  );
 
-    setBets((current) => [optimistic, ...current]);
-    setPage(1);
-
+  const saveNewBet = useCallback(async (values: ComposeValues) => {
+    saveBetDefaults(values);
+    setDefaults({ wager: values.wager, odds: values.odds });
     const response = await fetch('/api/bets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bet_date: optimistic.bet_date,
-        bet: optimistic.bet,
-        wager: optimistic.wager,
-        odds: optimistic.odds,
-        outcome: optimistic.outcome,
-      }),
+      body: JSON.stringify(composeToInput(values)),
     });
-
     if (!response.ok) {
-      setBets((current) => current.filter((bet) => bet.id !== tempId));
+      showToast('Could not save bet', 'error');
       return;
     }
-
     const data = (await response.json()) as { bet: Bet };
-    setBets((current) =>
-      current.map((bet) => (bet.id === tempId ? data.bet : bet))
-    );
-  }, [user?.id]);
+    setBets((current) => {
+      const next = [data.bet, ...current];
+      const key = weekKeyFromDate(values.bet_date);
+      const wks = groupBetsIntoWeeks(next);
+      const idx = wks.findIndex((w) => w.key === key);
+      if (idx >= 0) setWeekPage(idx);
+      return next;
+    });
+    showToast('Bet saved', 'success');
+  }, [showToast]);
 
-  const removeBet = useCallback(async (id: string) => {
-    const previous = bets;
-    setBets((current) => current.filter((bet) => bet.id !== id));
+  const saveEditBet = useCallback(
+    (id: string, values: ComposeValues) => {
+      saveBetDefaults(values);
+      setDefaults({ wager: values.wager, odds: values.odds });
+      updateBet(id, composeToInput(values));
+      setEditingId(null);
+      const key = weekKeyFromDate(values.bet_date);
+      const idx = weeks.findIndex((w) => w.key === key);
+      if (idx >= 0) setWeekPage(idx);
+      showToast('Bet updated', 'success');
+    },
+    [updateBet, weeks, showToast]
+  );
 
-    const timer = saveTimers.current.get(id);
-    if (timer) {
-      clearTimeout(timer);
-      saveTimers.current.delete(id);
-    }
-
-    const response = await fetch(`/api/bets/${id}`, { method: 'DELETE' });
-    if (!response.ok) {
-      setBets(previous);
-    }
-  }, [bets]);
+  const removeBet = useCallback(
+    async (id: string) => {
+      const previous = bets;
+      setBets((current) => current.filter((bet) => bet.id !== id));
+      setEditingId(null);
+      const timer = saveTimers.current.get(id);
+      if (timer) {
+        clearTimeout(timer);
+        saveTimers.current.delete(id);
+      }
+      const response = await fetch(`/api/bets/${id}`, { method: 'DELETE' });
+      if (!response.ok) setBets(previous);
+    },
+    [bets]
+  );
 
   if (authLoading) {
     return (
@@ -214,7 +275,7 @@ export default function BetTracker() {
           <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-violet-900/20 blur-[140px]" />
         </div>
         <header className="sticky top-0 z-40 border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2 sm:px-6">
             <BrandMark />
             <AuthButton />
           </div>
@@ -226,7 +287,12 @@ export default function BetTracker() {
     );
   }
 
+  const repeatFrom: ComposeValues | null = lastBet
+    ? { ...betToCompose(lastBet), bet_date: todayIso(), outcome: 'pending' }
+    : null;
+
   return (
+    <DisplayModeProvider>
     <div className="min-h-screen overflow-x-hidden bg-[#050505] text-stone-100">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-violet-900/20 blur-[140px]" />
@@ -234,351 +300,158 @@ export default function BetTracker() {
       </div>
 
       <header className="sticky top-0 z-40 border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-6 sm:py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2 sm:px-6">
           <BrandMark />
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={addBet}
-              className="inline-flex items-center gap-1.5 rounded-full bg-violet-600 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg shadow-violet-900/30 transition hover:bg-violet-500 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-[11px]"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span className="sm:hidden">Add</span>
-              <span className="hidden sm:inline">Add Bet</span>
-            </button>
-            <AuthButton />
-          </div>
+          <AuthButton />
         </div>
       </header>
+
+      <AppTabs active={activeTab} onChange={setActiveTab} />
 
       <RunningTotalBanner
         total={runningTotal}
         settledCount={settledCount}
         winCount={winCount}
         lossCount={lossCount}
+        winRate={winRate}
+        dailyRecaps={dailyRecaps}
       />
 
-      <main className="relative z-10 mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 sm:py-8">
+      <Toast message={toast?.message ?? null} tone={toast?.tone} onDismiss={() => setToast(null)} />
+      <MobileShellExtras />
+
+      <main className="relative z-10 mx-auto w-full max-w-6xl px-3 py-2 sm:px-6 sm:py-4">
         {loadingBets && bets.length === 0 ? (
           <div className="flex justify-center py-20">
             <div className="h-8 w-8 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
           </div>
-        ) : bets.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-white/10 bg-stone-900/20 px-6 py-20 text-center">
-            <p className="text-sm font-bold uppercase tracking-widest text-stone-500">
-              No bets logged yet
-            </p>
-            <p className="mt-2 text-stone-600">
-              Tap &quot;Add Bet&quot; to start tracking your action.
-            </p>
-            <button
-              type="button"
-              onClick={addBet}
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-stone-300 transition hover:border-violet-500/40 hover:text-white"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add your first bet
-            </button>
-          </div>
+        ) : activeTab === 'history' ? (
+          <HistoryView
+            bets={bets}
+            monthSummaries={monthSummaries}
+            onJumpToMonth={jumpToMonth}
+          />
         ) : (
           <>
-            <MonthlySummary summaries={monthSummaries} />
+            {currentWeek && (
+              <WeekPagination
+                week={currentWeek}
+                page={weekPage}
+                totalWeeks={totalWeeks}
+                betCount={weekBetsRaw.length}
+                isCurrentWeek={isCurrentWeek}
+                onPageChange={setWeekPage}
+                onJumpToToday={jumpToToday}
+              />
+            )}
 
-            <BetPagination
-              page={page}
-              totalItems={bets.length}
-              onPageChange={setPage}
+            <AutoGradeButton
+              pendingCount={pendingCount}
+              onGraded={handleAutoGraded}
+              onError={(m) => showToast(m, 'error')}
             />
 
-            {/* Mobile: stacked cards — no horizontal scroll */}
-            <div className="space-y-3 md:hidden">
-              {paginatedBets.map((bet, index) => (
-                <BetMobileCard
-                  key={bet.id}
-                  bet={bet}
-                  isNewest={page === 1 && index === 0}
-                  onUpdate={updateBet}
-                  onRemove={removeBet}
+            {weekBetsRaw.length > 3 && (
+              <div className="relative mb-3">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-600" />
+                <input
+                  type="search"
+                  value={weekSearch}
+                  onChange={(e) => setWeekSearch(e.target.value)}
+                  placeholder="Filter this week…"
+                  className="w-full rounded-xl border border-white/5 bg-stone-900/40 py-2 pl-9 pr-3 text-xs text-stone-300 outline-none focus:border-violet-500/30"
                 />
-              ))}
-            </div>
+              </div>
+            )}
 
-            {/* Desktop: table */}
-            <div className="hidden overflow-hidden rounded-3xl border border-white/5 bg-stone-900/30 shadow-2xl shadow-black/40 md:block">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-white/5 bg-stone-900/60 text-left">
-                    {['Date', 'Bet', 'Wager', 'Odds', 'Outcome', 'Result', ''].map(
-                      (label) => (
-                        <th
-                          key={label || 'actions'}
-                          className="px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-stone-500"
-                        >
-                          {label}
-                        </th>
-                      )
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedBets.map((bet, index) => (
-                    <BetTableRow
+            <div className="overflow-hidden rounded-xl border border-white/5 bg-stone-900/20">
+              {showManualLegend && (
+                <p className="border-b border-yellow-500/20 bg-yellow-500/10 px-3 py-1.5 text-center text-[10px] font-medium text-yellow-400/90">
+                  Yellow outline = grade manually (tap outcome pill)
+                </p>
+              )}
+              <div className="hidden items-center gap-1.5 border-b border-white/5 bg-stone-900/50 px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-stone-600 sm:flex">
+                <span className="w-9">Date</span>
+                <span className="flex-1">Bet</span>
+                <span className="w-10 text-right">$</span>
+                <span className="w-11 text-right">Odds</span>
+                <span className="w-6 text-center">St</span>
+                <span className="w-12 text-right">P/L</span>
+                <span className="w-6" />
+              </div>
+
+              <BetQuickAddRow
+                defaults={defaults}
+                repeatFrom={repeatFrom}
+                onSave={saveNewBet}
+              />
+
+              {weekBets.length === 0 ? (
+                weekSearch ? (
+                  <p className="px-4 py-6 text-center text-xs text-stone-600">
+                    No matches — try a different filter.
+                  </p>
+                ) : bets.length > 0 ? (
+                  <p className="px-4 py-6 text-center text-xs text-stone-600">
+                    No bets this week — add one above or swipe to other weeks.
+                  </p>
+                ) : null
+              ) : (
+                weekBets.map((bet) =>
+                  editingId === bet.id ? (
+                    <BetInlineEditRow
+                      key={bet.id}
+                      initial={betToCompose(bet)}
+                      onSave={(v) => saveEditBet(bet.id, v)}
+                      onCancel={() => setEditingId(null)}
+                      onDelete={() => removeBet(bet.id)}
+                    />
+                  ) : (
+                    <BetCompactRow
                       key={bet.id}
                       bet={bet}
-                      isNewest={page === 1 && index === 0}
-                      onUpdate={updateBet}
-                      onRemove={removeBet}
+                      autoGradeMissed={autoGradeMissedIds.has(bet.id)}
+                      onOutcomeChange={setOutcome}
+                      onEdit={setEditingId}
                     />
-                  ))}
-                </tbody>
-              </table>
+                  )
+                )
+              )}
             </div>
 
-            <BetPagination
-              page={page}
-              totalItems={bets.length}
-              onPageChange={setPage}
-            />
+            {currentWeek && totalWeeks > 1 && (
+              <WeekPagination
+                week={currentWeek}
+                page={weekPage}
+                totalWeeks={totalWeeks}
+                betCount={weekBetsRaw.length}
+                isCurrentWeek={isCurrentWeek}
+                onPageChange={setWeekPage}
+                onJumpToToday={jumpToToday}
+              />
+            )}
           </>
         )}
       </main>
     </div>
+    </DisplayModeProvider>
   );
 }
 
 function BrandMark() {
   return (
-    <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-600 to-violet-950 shadow-lg shadow-violet-900/20 sm:h-10 sm:w-10">
-        <Zap className="h-4 w-4 text-white sm:h-5 sm:w-5" />
+    <div className="flex min-w-0 items-center gap-2">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-500/30 bg-gradient-to-br from-violet-600 to-violet-950 shadow-violet-900/20">
+        <Zap className="h-3.5 w-3.5 text-white" />
       </div>
       <div className="min-w-0">
-        <h1 className="truncate text-lg font-black uppercase italic tracking-tighter sm:text-2xl">
+        <h1 className="truncate text-sm font-black uppercase italic tracking-tighter sm:text-base">
           Benjamin<span className="text-violet-500">Bettin&apos;</span>
         </h1>
-        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-500 sm:text-[10px]">
+        <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-stone-600 sm:text-[9px]">
           Bet Tracker
         </p>
       </div>
     </div>
-  );
-}
-
-interface BetRowProps {
-  bet: Bet;
-  isNewest: boolean;
-  onUpdate: (id: string, patch: BetInput) => void;
-  onRemove: (id: string) => void;
-}
-
-function BetMobileCard({ bet, isNewest, onUpdate, onRemove }: BetRowProps) {
-  const result = calculateBetResult(bet.wager, bet.odds, bet.outcome);
-
-  return (
-    <article
-      className={cn(
-        'w-full rounded-2xl border border-white/5 bg-stone-900/40 p-4',
-        isNewest && 'border-violet-500/20 bg-violet-500/[0.04]'
-      )}
-    >
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <input
-          type="date"
-          value={bet.bet_date}
-          onChange={(e) => onUpdate(bet.id, { bet_date: e.target.value })}
-          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-stone-950/60 px-2 py-2 text-sm text-stone-200 outline-none focus:border-violet-500/40"
-        />
-        <button
-          type="button"
-          onClick={() => onRemove(bet.id)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 text-stone-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
-          aria-label="Delete bet"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-
-      <label className="mb-3 block">
-        <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-stone-600">
-          Bet
-        </span>
-        <input
-          type="text"
-          value={bet.bet}
-          placeholder="Yankees -1.5"
-          onChange={(e) => onUpdate(bet.id, { bet: e.target.value })}
-          className="w-full rounded-xl border border-white/10 bg-stone-950/60 px-3 py-3 text-base font-medium text-stone-100 outline-none placeholder:text-stone-600 focus:border-violet-500/40"
-        />
-      </label>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Wager">
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-500">
-              $
-            </span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={bet.wager || ''}
-              placeholder="0"
-              onChange={(e) =>
-                onUpdate(bet.id, { wager: Number.parseFloat(e.target.value) || 0 })
-              }
-              className="w-full rounded-xl border border-white/10 bg-stone-950/60 py-2.5 pl-7 pr-3 text-sm tabular-nums text-stone-200 outline-none focus:border-violet-500/40"
-            />
-          </div>
-        </Field>
-
-        <Field label="Odds">
-          <input
-            type="text"
-            value={bet.odds}
-            placeholder="-110"
-            onChange={(e) => onUpdate(bet.id, { odds: e.target.value })}
-            className="w-full rounded-xl border border-white/10 bg-stone-950/60 px-3 py-2.5 text-sm font-semibold tabular-nums text-emerald-400 outline-none focus:border-violet-500/40"
-          />
-        </Field>
-
-        <Field label="Outcome">
-          <div className="relative">
-            <select
-              value={bet.outcome}
-              onChange={(e) =>
-                onUpdate(bet.id, { outcome: e.target.value as BetOutcome })
-              }
-              className={cn(
-                'w-full appearance-none rounded-xl border px-3 py-2.5 pr-8 text-sm font-semibold outline-none',
-                outcomeStyles(bet.outcome)
-              )}
-            >
-              {OUTCOMES.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
-          </div>
-        </Field>
-
-        <Field label="Result">
-          <div
-            className={cn(
-              'flex h-[42px] items-center rounded-xl border border-white/10 bg-stone-950/40 px-3 text-sm font-semibold tabular-nums',
-              resultStyles(result, bet.outcome)
-            )}
-          >
-            {bet.outcome === 'pending' ? '—' : formatCurrency(result)}
-          </div>
-        </Field>
-      </div>
-    </article>
-  );
-}
-
-function BetTableRow({ bet, isNewest, onUpdate, onRemove }: BetRowProps) {
-  const result = calculateBetResult(bet.wager, bet.odds, bet.outcome);
-
-  return (
-    <tr
-      className={cn(
-        'group border-b border-white/5 transition-colors hover:bg-white/[0.02]',
-        isNewest && 'bg-violet-500/[0.03]'
-      )}
-    >
-      <td className="px-2 py-2">
-        <input
-          type="date"
-          value={bet.bet_date}
-          onChange={(e) => onUpdate(bet.id, { bet_date: e.target.value })}
-          className="w-full rounded-xl border border-transparent bg-transparent px-3 py-2.5 text-sm text-stone-200 outline-none transition focus:border-violet-500/30 focus:bg-stone-950/60"
-        />
-      </td>
-      <td className="px-2 py-2">
-        <input
-          type="text"
-          value={bet.bet}
-          placeholder="Yankees -1.5"
-          onChange={(e) => onUpdate(bet.id, { bet: e.target.value })}
-          className="w-full rounded-xl border border-transparent bg-transparent px-3 py-2.5 text-sm font-medium text-stone-100 outline-none transition placeholder:text-stone-600 focus:border-violet-500/30 focus:bg-stone-950/60"
-        />
-      </td>
-      <td className="px-2 py-2">
-        <div className="relative">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-500">
-            $
-          </span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={bet.wager || ''}
-            placeholder="0"
-            onChange={(e) =>
-              onUpdate(bet.id, { wager: Number.parseFloat(e.target.value) || 0 })
-            }
-            className="w-full rounded-xl border border-transparent bg-transparent py-2.5 pl-7 pr-3 text-sm tabular-nums text-stone-200 outline-none transition focus:border-violet-500/30 focus:bg-stone-950/60"
-          />
-        </div>
-      </td>
-      <td className="px-2 py-2">
-        <input
-          type="text"
-          value={bet.odds}
-          placeholder="-110"
-          onChange={(e) => onUpdate(bet.id, { odds: e.target.value })}
-          className="w-full rounded-xl border border-transparent bg-transparent px-3 py-2.5 text-sm font-semibold tabular-nums text-emerald-400 outline-none transition placeholder:text-stone-600 focus:border-violet-500/30 focus:bg-stone-950/60"
-        />
-      </td>
-      <td className="px-2 py-2">
-        <div className="relative">
-          <select
-            value={bet.outcome}
-            onChange={(e) =>
-              onUpdate(bet.id, { outcome: e.target.value as BetOutcome })
-            }
-            className={cn(
-              'w-full appearance-none rounded-xl border px-3 py-2.5 pr-8 text-sm font-semibold outline-none transition focus:ring-2 focus:ring-violet-500/20',
-              outcomeStyles(bet.outcome)
-            )}
-          >
-            {OUTCOMES.map((option) => (
-              <option key={option.value} value={option.value} className="bg-stone-900 text-stone-100">
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
-        </div>
-      </td>
-      <td className="px-4 py-2">
-        <span className={cn('text-sm font-semibold tabular-nums', resultStyles(result, bet.outcome))}>
-          {bet.outcome === 'pending' ? '—' : formatCurrency(result)}
-        </span>
-      </td>
-      <td className="px-2 py-2 text-right">
-        <button
-          type="button"
-          onClick={() => onRemove(bet.id)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-transparent text-stone-600 opacity-0 transition group-hover:opacity-100 hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400"
-          aria-label="Delete bet"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </td>
-    </tr>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block min-w-0">
-      <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-stone-600">
-        {label}
-      </span>
-      {children}
-    </label>
   );
 }

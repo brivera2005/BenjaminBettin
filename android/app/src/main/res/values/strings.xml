@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bettin\'</string>
+    <string name="title_activity_main">Bettin\'</string>
+    <string name="package_name">com.benjaminbettin.app</string>
+    <string name="custom_url_scheme">com.benjaminbettin.app</string>
+</resources>

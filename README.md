@@ -1,137 +1,177 @@
-# BenjaminBettin — Bet Tracker
+# Bettin' — Sports Bet Tracker
 
-A fast, beautiful sports bet tracking app with Google Sign-In and per-user persistence on Cloudflare D1.
+**Live app:** https://benjamin-bettin.brivera2005.workers.dev  
+**Android:** sideload APK via [GitHub Releases](https://github.com/brivera2005/BenjaminBettin/releases) (see [docs/ANDROID.md](docs/ANDROID.md))
+
+A fast, dark-mode bet tracker built for logging slips in seconds — compact rows, week pagination, auto-grade, and unit view for bankroll nerds.
+
+---
+
+## Name
+
+| Name | Vibe |
+|------|------|
+| **BenjaminBettin** | Personal, repo/domain name — great for you |
+| **Bettin'** | Public app name on the icon — short, memorable, slightly cocky ✓ |
+| UnitLog / EdgeLedger | Generic if you ever productize |
+
+**Recommendation:** keep **BenjaminBettin** as the GitHub repo, ship the phone icon as **Bettin'**.
+
+---
 
 ## Features
 
-- **Bet log** — Date, Bet, Wager, Odds, Outcome, Result with inline editing
-- **Running total** — Sticky P/L banner using American odds math (win / loss / push)
-- **Newest first** — New bets appear at the top of the table
-- **Google Sign-In** — Each user's bets are stored permanently in D1
-- **Optimistic UI** — Edits feel instant; changes sync in the background
+### Bet logging
+- One-line **quick add** — ML, spread, O/U, team total, parlay (`Prl`)
+- **Parlay paste** — full slip text saved as-is (manual grade)
+- **Compact rows** — date, bet, wager, odds, outcome, P/L
+- **Week pagination** — swipe older/newer weeks, jump to current week
+- **Sort by risk** — highest wager first within each day
+- **Repeat last bet** — one tap to clone wager/odds
+
+### Grading
+- **Auto-grade** — ML, spread, game total, team total via The Odds API
+- **Yellow highlight** — parlays, props, F5, anything auto-grade can't handle
+- Tap outcome pill: Pending → Win → Loss → Push
+
+### Stats
+- **Running total** with settled / W / L / win%
+- **Tap total** → toggle **$ ↔ units** ($10 unit size, rounded)
+- **Daily recaps** — Last 10, Last 5, Yesterday
+- **History tab** — cumulative chart, monthly bars, monthly summary
+- **Prior profit baseline** baked into all-time total (config in `lib/baseline.ts`)
+
+### Account
+- Google Sign-In
+- Per-user bets on Cloudflare D1
+- Optimistic UI — edits feel instant
+
+### Android app
+- Native shell (Capacitor) — home screen icon, splash, status bar
+- Loads live Cloudflare app (most updates = no reinstall)
+- **In-app updater** — checks GitHub Releases for new APK shell
+- Ad + premium placeholders ready (see docs below)
+
+---
 
 ## Stack
 
-- Next.js 16 + React 19 + Tailwind CSS 4
-- Cloudflare Workers (via `@opennextjs/cloudflare`)
-- Cloudflare D1 (SQLite)
-- Google OAuth 2.0 + signed session cookies (`jose`)
+| Layer | Tech |
+|-------|------|
+| Web | Next.js 16, React 19, Tailwind 4 |
+| Host | Cloudflare Workers + D1 |
+| Auth | Google OAuth, `jose` sessions |
+| Mobile | Capacitor 8 (Android) |
+| Scores | The Odds API |
 
-## Local development
+---
 
-### 1. Install dependencies
+## Quick start (web)
 
 ```bash
 npm install
-```
-
-### 2. Configure environment
-
-Copy the example files and fill in your values:
-
-```bash
-cp .env.example .env.local
-cp .dev.vars.example .dev.vars
-```
-
-Required variables:
-
-| Variable | Description |
-|----------|-------------|
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
-| `AUTH_SECRET` | Random 32+ char string for session signing |
-| `APP_URL` | App origin (must match OAuth redirect) |
-
-### 3. Google Cloud Console setup
-
-1. Create a project at [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable **Google+ API** / **Google Identity** (OAuth consent screen)
-3. Create **OAuth 2.0 Client ID** (Web application)
-4. Add authorized redirect URI:
-   - Local preview: `http://localhost:8787/auth/callback`
-   - Production: `https://<your-domain>/auth/callback`
-
-### 4. Run database migrations (local D1)
-
-```bash
+cp .env.example .env.local   # GOOGLE_*, AUTH_SECRET, APP_URL, ODDS_API_KEY
 npm run db:migrate:local
+npm run preview              # http://localhost:8787
 ```
 
-### 5. Start the app
-
-**Recommended (Cloudflare preview with D1 bindings):**
+Deploy:
 
 ```bash
-npm run preview
+npm run deploy
 ```
 
-Opens at `http://localhost:8787`.
+Full setup: Google OAuth redirect URIs, Wrangler secrets — see sections below in this file or `.env.example`.
 
-**Alternative (Next.js dev — requires `.env.local`):**
+---
+
+## Android APK (your phone)
 
 ```bash
-npm run dev
+npm run mobile:sync
+npm run mobile:open          # opens Android Studio
 ```
 
-Opens at `http://localhost:3000`. Set `APP_URL=http://localhost:3000` and add that redirect URI in Google Console.
-
-## Deploy to Cloudflare
-
-### 1. Log in to Cloudflare
+Build APK in Android Studio, or push a tag and GitHub builds it:
 
 ```bash
-npx wrangler login
+# bump mobile/release.json versionCode first
+git tag android-v1.0.0-build1
+git push origin android-v1.0.0-build1
 ```
 
-### 2. Create the D1 database (first time only)
+📖 **[docs/ANDROID.md](docs/ANDROID.md)** — install, updates, signing  
+📖 **[docs/ADS.md](docs/ADS.md)** — AdMob setup  
+📖 **[docs/PREMIUM.md](docs/PREMIUM.md)** — $9.99 one-time premium via Stripe  
 
-```bash
-npx wrangler d1 create benjamin-bettin-db
+---
+
+## Two update channels
+
+| What changed | How users get it |
+|--------------|------------------|
+| UI, bets, auto-grade, stats | `npm run deploy` → instant in browser + app |
+| Native shell, ads SDK, billing | New GitHub Release APK → in-app **Install update** banner |
+
+---
+
+## Bet semantics
+
+| Entry | Meaning |
+|-------|---------|
+| `Yankees ML` | Moneyline |
+| `Yankees +1.5` | Spread |
+| `Yankees O9.5` | **Game** total |
+| `Yankees TT O4.5` | **Team** total |
+| `Yankees -1.5, Mets ML, …` | Parlay (manual grade) |
+
+---
+
+## American odds P/L
+
+- **Win (+140):** profit = wager × (odds / 100)
+- **Win (-110):** profit = wager / (|odds| / 100)
+- **Loss:** −wager
+- **Push / Pending:** $0
+
+---
+
+## Project structure
+
+```
+app/              Next.js routes + API
+components/       UI (BetTracker, charts, mobile shell)
+lib/              bet math, parse, auto-grade, D1, mobile config
+mobile/           Capacitor web fallback + release.json
+plugins/          apk-updater (GitHub in-app updates)
+android/          Capacitor Android project
+docs/             ANDROID, ADS, PREMIUM guides
+migrations/       D1 SQL
 ```
 
-Copy the returned `database_id` into `wrangler.jsonc` under `d1_databases`.
+---
 
-### 3. Apply remote migrations
+## Deploy to Cloudflare (detail)
 
-```bash
-npm run db:migrate:remote
-```
-
-### 4. Set production secrets
+### Secrets
 
 ```bash
 npx wrangler secret put GOOGLE_CLIENT_ID
 npx wrangler secret put GOOGLE_CLIENT_SECRET
 npx wrangler secret put AUTH_SECRET
 npx wrangler secret put APP_URL
+npx wrangler secret put ODDS_API_KEY
 ```
 
-For `APP_URL`, use your production URL (e.g. `https://benjamin-bettin.<account>.workers.dev`).
-
-### 5. Deploy
+### Migrations
 
 ```bash
+npm run db:migrate:remote
 npm run deploy
 ```
 
-Or connect the GitHub repo in the [Cloudflare dashboard](https://dash.cloudflare.com/) → Workers & Pages → Create → Connect to Git, with build command `npm run deploy`.
+---
 
-## Project structure
+## License
 
-```
-app/
-  api/auth/     Google OAuth + session endpoints
-  api/bets/     Bet CRUD API
-  auth/callback OAuth callback
-components/     BetTracker, auth UI
-lib/            betting math, D1 helpers, auth
-migrations/     D1 SQL schema
-```
-
-## American odds P/L
-
-- **Win (positive odds +140):** profit = wager × (odds / 100)
-- **Win (negative odds -110):** profit = wager / (|odds| / 100)
-- **Loss:** −wager
-- **Push / Pending:** $0.00
+Private — personal bet tracker.

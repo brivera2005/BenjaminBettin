@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { formatCurrency, type MonthSummary } from '@/lib/betMath';
+import { isPriorPeriodKey } from '@/lib/baseline';
+import { useDisplayMode } from '@/components/DisplayModeContext';
+import { type MonthSummary } from '@/lib/betMath';
 import { cn } from '@/lib/utils';
 
 interface MonthlySummaryProps {
   summaries: MonthSummary[];
+  onMonthClick?: (monthKey: string) => void;
 }
 
-export function MonthlySummary({ summaries }: MonthlySummaryProps) {
+export function MonthlySummary({ summaries, onMonthClick }: MonthlySummaryProps) {
+  const { formatAmount } = useDisplayMode();
   const [expanded, setExpanded] = useState(true);
 
   if (summaries.length === 0) return null;
@@ -49,7 +53,29 @@ export function MonthlySummary({ summaries }: MonthlySummaryProps) {
             return (
               <article
                 key={month.key}
-                className="rounded-2xl border border-white/5 bg-stone-900/30 p-4"
+                role={onMonthClick && !isPriorPeriodKey(month.key) ? 'button' : undefined}
+                tabIndex={onMonthClick && !isPriorPeriodKey(month.key) ? 0 : undefined}
+                onClick={
+                  onMonthClick && !isPriorPeriodKey(month.key)
+                    ? () => onMonthClick(month.key)
+                    : undefined
+                }
+                onKeyDown={
+                  onMonthClick && !isPriorPeriodKey(month.key)
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onMonthClick(month.key);
+                        }
+                      }
+                    : undefined
+                }
+                className={cn(
+                  'rounded-2xl border border-white/5 bg-stone-900/30 p-4',
+                  onMonthClick &&
+                    !isPriorPeriodKey(month.key) &&
+                    'cursor-pointer transition hover:border-violet-500/30 hover:bg-stone-900/50 active:scale-[0.99]'
+                )}
               >
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
@@ -67,13 +93,13 @@ export function MonthlySummary({ summaries }: MonthlySummaryProps) {
                       month.profit === 0 && 'text-stone-400'
                     )}
                   >
-                    {formatCurrency(month.profit)}
+                    {formatAmount(month.profit)}
                   </p>
                 </div>
                 <div className="grid grid-cols-4 gap-2">
                   <MiniStat label="Wins" value={month.wins} className="text-emerald-400" />
-                  <MiniStat label="Losses" value={month.losses} className="text-stone-400" />
-                  <MiniStat label="Push" value={month.pushes} className="text-amber-400" />
+                  <MiniStat label="Losses" value={month.losses} className="text-red-400" />
+                  <MiniStat label="Push" value={month.pushes} className="text-yellow-400" />
                   <MiniStat
                     label="Win %"
                     value={winRate !== null ? `${winRate}%` : '—'}

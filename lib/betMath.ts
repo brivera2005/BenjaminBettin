@@ -43,9 +43,39 @@ export function formatCurrency(value: number): string {
   return `${sign}$${Math.abs(value).toFixed(2)}`;
 }
 
-export function formatRunningTotal(value: number): string {
+export const UNIT_SIZE = 10;
+
+export function dollarsToUnits(dollars: number): number {
+  return Math.round(dollars / UNIT_SIZE);
+}
+
+export function unitsToDollars(units: number): number {
+  return units * UNIT_SIZE;
+}
+
+export type MoneyDisplayMode = 'dollars' | 'units';
+
+export function formatMoney(value: number, mode: MoneyDisplayMode): string {
+  if (mode === 'units') {
+    const units = dollarsToUnits(value);
+    if (units === 0) return '0u';
+    const sign = value > 0 ? '+' : value < 0 ? '-' : '';
+    return `${sign}${Math.abs(units)}u`;
+  }
+  return formatCurrency(value);
+}
+
+export function formatRunningTotal(value: number, mode: MoneyDisplayMode = 'dollars'): string {
+  if (mode === 'units') {
+    return formatMoney(value, 'units');
+  }
   if (value === 0) return '$0.00';
   return formatCurrency(value);
+}
+
+export function formatWager(value: number, mode: MoneyDisplayMode): string {
+  if (mode === 'units') return `${dollarsToUnits(value)}u`;
+  return `$${value}`;
 }
 
 export function outcomeLabel(outcome: BetOutcome): string {

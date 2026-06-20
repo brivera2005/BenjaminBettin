@@ -27,6 +27,11 @@ export function AuthButton() {
         <span className="hidden sm:block text-sm text-stone-400 max-w-[140px] truncate">
           {user.name ?? user.email}
         </span>
+        {user.premium && (
+          <span className="hidden rounded-full border border-violet-500/30 bg-violet-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-300 sm:inline">
+            Premium
+          </span>
+        )}
         <button
           type="button"
           onClick={signOut}

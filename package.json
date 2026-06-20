@@ -11,9 +11,22 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "db:migrate:local": "wrangler d1 migrations apply benjamin-bettin-db --local",
-    "db:migrate:remote": "wrangler d1 migrations apply benjamin-bettin-db --remote"
+    "db:migrate:remote": "wrangler d1 migrations apply benjamin-bettin-db --remote",
+    "mobile:sync-version": "node scripts/sync-android-version.mjs",
+    "mobile:sync": "npm run mobile:sync-version && npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:build": "npm run mobile:sync && cd android && gradlew.bat assembleRelease"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/share": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
+    "apk-updater": "file:plugins/apk-updater",
     "clsx": "^2.1.1",
     "jose": "^6.2.3",
     "lucide-react": "^1.0.1",

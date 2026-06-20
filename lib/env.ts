@@ -13,6 +13,7 @@ export async function getBindings(): Promise<CloudflareEnv> {
       GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
       AUTH_SECRET: process.env.AUTH_SECRET ?? '',
       APP_URL: process.env.APP_URL ?? 'http://localhost:3000',
+      ODDS_API_KEY: process.env.ODDS_API_KEY ?? '',
     };
   }
 }

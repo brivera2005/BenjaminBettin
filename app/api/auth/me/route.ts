@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSessionUserId } from '@/lib/auth';
 import { getUserById } from '@/lib/db';
+import { userHasPremium } from '@/lib/premium';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,5 +16,10 @@ export async function GET() {
     return NextResponse.json({ user: null });
   }
 
-  return NextResponse.json({ user });
+  return NextResponse.json({
+    user: {
+      ...user,
+      premium: userHasPremium(user),
+    },
+  });
 }
