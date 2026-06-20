@@ -374,9 +374,9 @@ export default function BetTracker() {
                   Yellow outline = grade manually (tap outcome pill)
                 </p>
               )}
-              <div className="hidden items-center gap-1.5 border-b border-border-subtle bg-surface-strong px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:flex">
+              <div className="hidden items-center gap-1.5 border-b border-border-subtle bg-surface-strong px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:flex">
                 <span className="w-9">Date</span>
-                <span className="flex-1">Bet</span>
+                <span className="flex-1 text-right">Bet</span>
                 <span className="w-10 text-right">$</span>
                 <span className="w-11 text-right">Odds</span>
                 <span className="w-6 text-center">St</span>

@@ -57,6 +57,12 @@ export function profitValueClass(value: number): string {
 
 export const betRowWagerOddsClass = 'tabular-nums text-foreground';
 
+export const betRowLayoutClass =
+  'flex items-center gap-1 px-1 py-1 text-[11px] leading-tight sm:gap-1.5 sm:px-2 sm:text-xs';
+
+export const betRowBetClass = 'min-w-0 flex-1 truncate text-right';
+export const betRowBetInputClass = 'min-w-0 flex-1 text-right font-medium';
+
 export const betRowDateWidth = 'w-8 shrink-0 sm:w-9';
 export const betRowWagerWidth = 'w-9 shrink-0 sm:w-11';
 export const betRowOddsWidth = 'w-10 shrink-0 sm:w-11';

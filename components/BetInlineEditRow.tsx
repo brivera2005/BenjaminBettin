@@ -3,9 +3,17 @@
 import { useState } from 'react';
 import { Check, Trash2, X } from 'lucide-react';
 import type { ComposeValues } from '@/components/BetComposeForm';
-import { compactInputClass, cycleOutcome, OutcomePill, betRowWagerOddsClass } from '@/components/betRowShared';
+import {
+  betRowBetInputClass,
+  betRowLayoutClass,
+  compactInputClass,
+  cycleOutcome,
+  OutcomePill,
+  betRowWagerOddsClass,
+} from '@/components/betRowShared';
 import { useDisplayMode } from '@/components/DisplayModeContext';
 import type { BetOutcome } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface BetInlineEditRowProps {
   initial: ComposeValues;
@@ -25,7 +33,7 @@ export function BetInlineEditRow({ initial, onSave, onCancel, onDelete }: BetInl
     : values.wager || '';
 
   return (
-    <div className="flex items-center gap-1 border-b border-amber-500/20 bg-amber-500/[0.04] px-1 py-1.5 text-[11px] leading-tight sm:gap-1.5 sm:px-2 sm:text-xs">
+    <div className={cn(betRowLayoutClass, 'border-b border-amber-500/20 bg-amber-500/[0.04]')}>
       <input
         type="date"
         value={values.bet_date}
@@ -41,7 +49,7 @@ export function BetInlineEditRow({ initial, onSave, onCancel, onDelete }: BetInl
           if (e.key === 'Enter') onSave(values);
           if (e.key === 'Escape') onCancel();
         }}
-        className={`${compactInputClass} min-w-0 flex-1 font-medium`}
+        className={cn(compactInputClass, betRowBetInputClass)}
         autoFocus
       />
 

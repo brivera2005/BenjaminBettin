@@ -8,7 +8,9 @@ import {
   OutcomePill,
   cycleOutcome,
   outcomePlClass,
+  betRowBetClass,
   betRowDateWidth,
+  betRowLayoutClass,
   betRowEditWidth,
   betRowOddsWidth,
   betRowPlWidth,
@@ -39,7 +41,8 @@ export function BetCompactRow({
   return (
     <div
       className={cn(
-        'group flex items-center gap-1 border-b px-1 py-1.5 text-[11px] leading-tight sm:gap-1.5 sm:px-2 sm:text-xs',
+        'group border-b',
+        betRowLayoutClass,
         manual
           ? 'border-b-yellow-500/20 bg-yellow-500/[0.07] ring-1 ring-inset ring-yellow-500/35'
           : 'border-border-subtle'
@@ -59,7 +62,8 @@ export function BetCompactRow({
 
       <span
         className={cn(
-          'min-w-0 flex-1 truncate font-medium',
+          betRowBetClass,
+          'font-medium',
           manual ? 'text-yellow-800' : 'text-heading'
         )}
         title={bet.bet || 'No description'}
