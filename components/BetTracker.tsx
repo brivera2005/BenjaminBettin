@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Zap } from 'lucide-react';
+import { BrandMark } from '@/components/BrandMark';
 import { AutoGradeButton, type GradeResultItem } from '@/components/AutoGradeButton';
 import { AppTabs, type AppTab } from '@/components/AppTabs';
 import { AuthButton } from '@/components/AuthButton';
@@ -439,20 +439,3 @@ export default function BetTracker() {
   );
 }
 
-function BrandMark() {
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-violet-500/30 bg-gradient-to-br from-violet-600 to-violet-950 shadow-violet-900/20">
-        <Zap className="h-3.5 w-3.5 text-white" />
-      </div>
-      <div className="min-w-0">
-        <h1 className="truncate text-sm font-black uppercase italic tracking-tighter sm:text-base">
-          Benjamin<span className="text-violet-500">Bettin&apos;</span>
-        </h1>
-        <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-stone-600 sm:text-[9px]">
-          Bet Tracker
-        </p>
-      </div>
-    </div>
-  );
-}

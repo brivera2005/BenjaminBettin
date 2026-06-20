@@ -40,7 +40,7 @@ export async function getUserById(id: string): Promise<User | null> {
   const db = await getDb();
   const row = await db
     .prepare(
-      `SELECT id, email, name, avatar_url, is_premium, premium_grandfathered_at, premium_purchased_at
+      `SELECT id, email, name, avatar_url, is_premium, premium_grandfathered_at, premium_purchased_at, tracker_name
        FROM users WHERE id = ?`
     )
     .bind(id)
@@ -52,6 +52,7 @@ export async function getUserById(id: string): Promise<User | null> {
       is_premium: number;
       premium_grandfathered_at: string | null;
       premium_purchased_at: string | null;
+      tracker_name: string | null;
     }>();
 
   if (!row) return null;
@@ -64,6 +65,7 @@ export async function getUserById(id: string): Promise<User | null> {
     is_premium: Boolean(row.is_premium),
     premium_grandfathered_at: row.premium_grandfathered_at,
     premium_purchased_at: row.premium_purchased_at,
+    tracker_name: row.tracker_name,
   };
 }
 
@@ -229,5 +231,24 @@ export async function setUserOddsApiKey(userId: string, apiKey: string | null): 
   await db
     .prepare('UPDATE users SET odds_api_key = ? WHERE id = ?')
     .bind(apiKey?.trim() || null, userId)
+    .run();
+}
+
+export async function getUserTrackerName(userId: string): Promise<string | null> {
+  const db = await getDb();
+  const row = await db
+    .prepare('SELECT tracker_name FROM users WHERE id = ? LIMIT 1')
+    .bind(userId)
+    .first<{ tracker_name: string | null }>();
+
+  const name = row?.tracker_name?.trim();
+  return name || null;
+}
+
+export async function setUserTrackerName(userId: string, trackerName: string | null): Promise<void> {
+  const db = await getDb();
+  await db
+    .prepare('UPDATE users SET tracker_name = ? WHERE id = ?')
+    .bind(trackerName?.trim() || null, userId)
     .run();
 }

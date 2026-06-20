@@ -10,6 +10,7 @@ export interface User {
   premium_purchased_at?: string | null;
   /** Resolved on /api/auth/me — DB flag or grandfather list. */
   premium?: boolean;
+  tracker_name?: string | null;
 }
 
 export interface Bet {
