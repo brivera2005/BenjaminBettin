@@ -13,10 +13,8 @@ import type { ComposeValues } from '@/components/BetComposeForm';
 import type { DailyProfitEntry } from '@/lib/betStats';
 import { BetDayPlCell } from '@/components/BetDayPlCell';
 import {
-  betRowBetInputClass,
   betRowDateWidth,
   betRowEditWidth,
-  betRowLayoutClass,
   betRowOddsWidth,
   betRowStatusWidth,
   betRowWagerOddsClass,
@@ -118,7 +116,7 @@ export const BetQuickAddRow = forwardRef<BetQuickAddRowHandle, BetQuickAddRowPro
 
     return (
       <div className="border-b border-violet-500/25 bg-violet-500/[0.06]">
-        <div className={betRowLayoutClass}>
+        <div className="flex items-center gap-1 px-1 py-1.5 text-[11px] leading-tight sm:gap-1.5 sm:px-2 sm:text-xs">
           <label
             className={cn(
               quickAddFieldClass,
@@ -146,7 +144,7 @@ export const BetQuickAddRow = forwardRef<BetQuickAddRowHandle, BetQuickAddRowPro
             onKeyDown={(e) => {
               if (e.key === 'Enter') void submit();
             }}
-            className={cn(quickAddFieldClass, betRowBetInputClass)}
+            className={cn(quickAddFieldClass, 'min-w-0 flex-1 font-medium')}
           />
 
           <input
