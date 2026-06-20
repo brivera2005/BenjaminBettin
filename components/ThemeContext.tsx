@@ -10,9 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 
-export type Theme = 'light' | 'dark';
-
-export const THEME_STORAGE_KEY = 'benjamin-bettin-theme';
+import { THEME_STORAGE_KEY, type Theme } from '@/lib/theme';
 
 interface ThemeContextValue {
   theme: Theme;
