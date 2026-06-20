@@ -17,10 +17,12 @@ import {
   betRowEditWidth,
   betRowOddsWidth,
   betRowStatusWidth,
+  betRowWagerOddsClass,
   betRowWagerWidth,
   compactInputClass,
 } from '@/components/betRowShared';
 import { useDisplayMode } from '@/components/DisplayModeContext';
+import { formatAmericanOddsDisplay } from '@/lib/betMath';
 import {
   formatBetDescription,
   isParlayLike,
@@ -119,7 +121,7 @@ export const BetQuickAddRow = forwardRef<BetQuickAddRowHandle, BetQuickAddRowPro
             className={cn(
               quickAddFieldClass,
               betRowDateWidth,
-              'relative flex cursor-pointer items-center justify-center tabular-nums text-stone-500'
+              'relative flex cursor-pointer items-center justify-center tabular-nums text-muted-foreground'
             )}
             title="Tap to change date"
           >
@@ -162,14 +164,14 @@ export const BetQuickAddRow = forwardRef<BetQuickAddRowHandle, BetQuickAddRowPro
             onKeyDown={(e) => {
               if (e.key === 'Enter') void submit();
             }}
-            className={cn(quickAddFieldClass, betRowWagerWidth, 'tabular-nums')}
+            className={cn(quickAddFieldClass, betRowWagerWidth, betRowWagerOddsClass)}
             aria-label={units ? 'Wager (units)' : 'Wager'}
           />
 
           <input
             type="text"
             value={oddsInput}
-            placeholder="Odds"
+            placeholder={formatAmericanOddsDisplay(defaults.odds)}
             onChange={(e) => setOddsInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') void submit();
@@ -177,7 +179,8 @@ export const BetQuickAddRow = forwardRef<BetQuickAddRowHandle, BetQuickAddRowPro
             className={cn(
               quickAddFieldClass,
               betRowOddsWidth,
-              'text-right tabular-nums text-emerald-500/90 placeholder:text-stone-600'
+              betRowWagerOddsClass,
+              'text-right placeholder:text-muted-foreground'
             )}
             aria-label="Odds"
           />

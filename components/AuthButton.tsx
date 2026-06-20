@@ -9,7 +9,7 @@ export function AuthButton() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-stone-500 text-sm">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="w-4 h-4 animate-spin" />
       </div>
     );
@@ -30,7 +30,7 @@ export function AuthButton() {
           {user.name ?? user.email}
         </span>
         {user.premium && (
-          <span className="hidden rounded-full border border-violet-500/30 bg-violet-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-300 sm:inline">
+          <span className="hidden rounded-full border border-violet-500/30 bg-violet-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-violet-600 dark:text-violet-300 sm:inline">
             Premium
           </span>
         )}

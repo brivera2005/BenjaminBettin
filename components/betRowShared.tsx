@@ -39,21 +39,23 @@ export function outcomeAbbrev(outcome: BetOutcome) {
 export function outcomePlClass(outcome: BetOutcome): string {
   switch (outcome) {
     case 'win':
-      return 'text-emerald-400';
+      return 'text-emerald-600 dark:text-emerald-400';
     case 'loss':
-      return 'text-red-400';
+      return 'text-red-600 dark:text-red-400';
     case 'push':
-      return 'text-yellow-400';
+      return 'text-yellow-600 dark:text-yellow-400';
     default:
-      return 'text-stone-600';
+      return 'text-muted-foreground';
   }
 }
 
 export function profitValueClass(value: number): string {
-  if (value > 0) return 'text-emerald-400';
-  if (value < 0) return 'text-red-400';
-  return 'text-stone-500';
+  if (value > 0) return 'text-emerald-600 dark:text-emerald-400';
+  if (value < 0) return 'text-red-600 dark:text-red-400';
+  return 'text-muted-foreground';
 }
+
+export const betRowWagerOddsClass = 'tabular-nums text-foreground';
 
 export const betRowDateWidth = 'w-8 shrink-0 sm:w-9';
 export const betRowWagerWidth = 'w-9 shrink-0 sm:w-11';
@@ -87,10 +89,14 @@ export function OutcomePill({ outcome, onClick }: OutcomePillProps) {
       onClick={onClick}
       className={cn(
         'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-default text-[10px] font-bold transition active:scale-95',
-        outcome === 'win' && 'border-emerald-500/30 text-emerald-400',
-        outcome === 'loss' && 'border-red-500/30 text-red-400',
-        outcome === 'push' && 'border-yellow-500/30 text-yellow-400',
-        outcome === 'pending' && 'border-violet-500/20 text-violet-300'
+        outcome === 'win' &&
+          'border-emerald-500/40 text-emerald-700 dark:border-emerald-500/30 dark:text-emerald-400',
+        outcome === 'loss' &&
+          'border-red-500/40 text-red-700 dark:border-red-500/30 dark:text-red-400',
+        outcome === 'push' &&
+          'border-yellow-500/40 text-yellow-700 dark:border-yellow-500/30 dark:text-yellow-400',
+        outcome === 'pending' &&
+          'border-violet-500/30 text-violet-700 dark:border-violet-500/20 dark:text-violet-300'
       )}
       title="Tap: Pending → Win → Loss → Push"
     >

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Check, Trash2, X } from 'lucide-react';
 import type { ComposeValues } from '@/components/BetComposeForm';
-import { compactInputClass, cycleOutcome, OutcomePill } from '@/components/betRowShared';
+import { compactInputClass, cycleOutcome, OutcomePill, betRowWagerOddsClass } from '@/components/betRowShared';
 import { useDisplayMode } from '@/components/DisplayModeContext';
 import type { BetOutcome } from '@/lib/types';
 
@@ -54,7 +54,7 @@ export function BetInlineEditRow({ initial, onSave, onCancel, onDelete }: BetInl
           const raw = Number.parseFloat(e.target.value) || 0;
           setValues({ ...values, wager: units ? raw * unitSize : raw });
         }}
-        className={`${compactInputClass} w-9 shrink-0 tabular-nums sm:w-11`}
+        className={`${compactInputClass} w-9 shrink-0 tabular-nums sm:w-11 ${betRowWagerOddsClass}`}
         aria-label={units ? 'Wager (units)' : 'Wager'}
       />
 
@@ -62,7 +62,7 @@ export function BetInlineEditRow({ initial, onSave, onCancel, onDelete }: BetInl
         type="text"
         value={values.odds}
         onChange={(e) => setValues({ ...values, odds: e.target.value })}
-        className={`${compactInputClass} w-9 shrink-0 text-right tabular-nums text-emerald-500/90 sm:w-11`}
+        className={`${compactInputClass} w-9 shrink-0 text-right sm:w-11 ${betRowWagerOddsClass}`}
         aria-label="Odds"
       />
 
@@ -87,7 +87,7 @@ export function BetInlineEditRow({ initial, onSave, onCancel, onDelete }: BetInl
         <button
           type="button"
           onClick={() => setConfirmDelete(true)}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-stone-600 hover:text-red-400"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:text-red-500 dark:hover:text-red-400"
           aria-label="Delete"
         >
           <Trash2 className="h-3 w-3" />

@@ -20,7 +20,7 @@ export function BetDayPlCell({ entry, className }: BetDayPlCellProps) {
       className={cn(
         betRowPlWidth,
         'text-right text-[10px] font-semibold tabular-nums sm:text-[11px]',
-        hasSettled ? profitValueClass(profit) : 'text-stone-600',
+        hasSettled ? profitValueClass(profit) : 'text-muted-foreground',
         className
       )}
       title="Day running total"

@@ -31,8 +31,8 @@ export function RunningTotalBanner({
     <div
       className={clsx(
         'sticky top-[72px] z-30 border-b backdrop-blur-xl transition-colors',
-        isPositive && 'bg-emerald-950/40 border-emerald-500/20',
-        isNegative && 'bg-red-950/30 border-red-500/20',
+        isPositive && 'border-emerald-500/25 bg-emerald-500/10 dark:border-emerald-500/20 dark:bg-emerald-950/40',
+        isNegative && 'border-red-500/25 bg-red-500/10 dark:border-red-500/20 dark:bg-red-950/30',
         !isPositive && !isNegative && 'bg-surface-strong border-border-subtle'
       )}
     >
@@ -42,8 +42,8 @@ export function RunningTotalBanner({
             <div
               className={clsx(
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-md',
-                isPositive && 'bg-emerald-500/20 text-emerald-400',
-                isNegative && 'bg-red-500/20 text-red-400',
+                isPositive && 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400',
+                isNegative && 'bg-red-500/15 text-red-600 dark:bg-red-500/20 dark:text-red-400',
                 !isPositive && !isNegative && 'bg-surface-strong text-muted-foreground'
               )}
             >
@@ -61,8 +61,8 @@ export function RunningTotalBanner({
                 title={units ? 'Show dollars' : 'Show units ($10 per unit)'}
                 className={clsx(
                   'rounded px-0.5 text-base font-semibold tabular-nums leading-none transition hover:opacity-80 active:scale-[0.98] sm:text-lg',
-                  isPositive && 'text-emerald-400',
-                  isNegative && 'text-red-400',
+                  isPositive && 'text-emerald-600 dark:text-emerald-400',
+                  isNegative && 'text-red-600 dark:text-red-400',
                   !isPositive && !isNegative && 'text-heading'
                 )}
               >
@@ -75,12 +75,12 @@ export function RunningTotalBanner({
 
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] tabular-nums sm:text-[10px]">
             <Stat value={settledCount} label="settled" />
-            <Stat value={winCount} label="W" valueClass="text-emerald-400/90" />
-            <Stat value={lossCount} label="L" valueClass="text-red-400/90" />
+            <Stat value={winCount} label="W" valueClass="text-emerald-600 dark:text-emerald-400/90" />
+            <Stat value={lossCount} label="L" valueClass="text-red-600 dark:text-red-400/90" />
             <Stat
               value={winRate !== null ? `${winRate}%` : '—'}
               label="win"
-              valueClass="text-violet-300/90"
+              valueClass="text-violet-600 dark:text-violet-300/90"
             />
           </div>
 

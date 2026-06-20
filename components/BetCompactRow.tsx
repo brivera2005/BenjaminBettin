@@ -1,10 +1,20 @@
 'use client';
 
 import { Hand, Pencil } from 'lucide-react';
-import { calculateBetResult } from '@/lib/betMath';
+import { calculateBetResult, formatAmericanOddsDisplay } from '@/lib/betMath';
 import { useDisplayMode } from '@/components/DisplayModeContext';
 import { needsManualGrading } from '@/lib/betParse';
-import { OutcomePill, cycleOutcome, outcomePlClass, betRowDateWidth, betRowEditWidth, betRowOddsWidth, betRowPlWidth, betRowWagerWidth } from '@/components/betRowShared';
+import {
+  OutcomePill,
+  cycleOutcome,
+  outcomePlClass,
+  betRowDateWidth,
+  betRowEditWidth,
+  betRowOddsWidth,
+  betRowPlWidth,
+  betRowWagerOddsClass,
+  betRowWagerWidth,
+} from '@/components/betRowShared';
 import type { Bet, BetOutcome } from '@/lib/types';
 import { formatShortDate } from '@/lib/weekUtils';
 import { cn } from '@/lib/utils';
@@ -43,7 +53,7 @@ export function BetCompactRow({
         />
       )}
 
-      <span className={cn(betRowDateWidth, 'tabular-nums text-stone-500')}>
+      <span className={cn(betRowDateWidth, 'tabular-nums text-muted-foreground')}>
         {formatShortDate(bet.bet_date)}
       </span>
 
@@ -57,11 +67,11 @@ export function BetCompactRow({
         {bet.bet || <span className="text-muted-foreground italic">untitled</span>}
       </span>
 
-      <span className={cn(betRowWagerWidth, 'tabular-nums text-stone-500')}>
+      <span className={cn(betRowWagerWidth, betRowWagerOddsClass)}>
         {formatWager(bet.wager)}
       </span>
-      <span className={cn(betRowOddsWidth, 'text-right tabular-nums text-emerald-500/90')}>
-        {bet.odds}
+      <span className={cn(betRowOddsWidth, betRowWagerOddsClass, 'text-right')}>
+        {formatAmericanOddsDisplay(bet.odds)}
       </span>
 
       <OutcomePill

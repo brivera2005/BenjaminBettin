@@ -148,7 +148,7 @@ export function BrandMark() {
             />
           </button>
         )}
-        <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-stone-600 sm:text-[9px]">
+        <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-muted-foreground sm:text-[9px]">
           Bet Tracker
         </p>
       </div>

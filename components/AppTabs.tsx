@@ -30,8 +30,8 @@ export function AppTabs({ active, onChange }: AppTabsProps) {
           className={cn(
             'flex items-center gap-1 border-b-2 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest transition sm:px-3',
             active === id
-              ? 'border-violet-500 text-violet-300'
-              : 'border-transparent text-stone-500 hover:text-stone-300'
+              ? 'border-violet-500 text-violet-600 dark:text-violet-300'
+              : 'border-transparent text-muted-foreground hover:text-heading'
           )}
         >
           <Icon className="h-3 w-3" />

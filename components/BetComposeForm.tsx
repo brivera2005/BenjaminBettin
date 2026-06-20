@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Check, ChevronDown, Copy, Trash2, X } from 'lucide-react';
-import { calculateBetResult, formatCurrency } from '@/lib/betMath';
+import { calculateBetResult, formatAmericanOddsDisplay, formatCurrency } from '@/lib/betMath';
 import type { Bet, BetInput, BetOutcome } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -178,14 +178,14 @@ export function BetComposeForm({
             </div>
           </label>
           <label className="block">
-            <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-stone-600">
+            <span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Odds
             </span>
             <input
               type="text"
               value={values.odds}
               onChange={(e) => setValues({ ...values, odds: e.target.value })}
-              className="w-full rounded-xl border border-border-default bg-surface-input px-3 py-2.5 text-sm font-semibold tabular-nums text-emerald-400 outline-none focus:border-violet-500/40"
+              className="w-full rounded-xl border border-border-default bg-surface-input px-3 py-2.5 text-sm font-semibold tabular-nums text-foreground outline-none focus:border-violet-500/40"
             />
             <div className="mt-1.5 flex flex-wrap gap-1">
               {ODDS_PRESETS.map((odds) => (
@@ -196,11 +196,11 @@ export function BetComposeForm({
                   className={cn(
                     'rounded-md border px-2 py-0.5 text-[10px] font-bold tabular-nums transition',
                     values.odds === odds
-                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                      ? 'border-border-default bg-surface-strong text-foreground'
                       : 'border-border-subtle text-muted-foreground hover:border-border-default hover:text-foreground'
                   )}
                 >
-                  {odds}
+                  {formatAmericanOddsDisplay(odds)}
                 </button>
               ))}
             </div>

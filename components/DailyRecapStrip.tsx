@@ -28,20 +28,20 @@ function RecapChip({ recap }: { recap: DailyRecap }) {
 
   return (
     <div className="flex items-baseline gap-1 text-[9px] leading-none sm:text-[10px]">
-      <span className="font-bold uppercase tracking-wide text-stone-600">{recap.label}</span>
+      <span className="font-bold uppercase tracking-wide text-muted-foreground">{recap.label}</span>
       <span
         className={clsx(
           'font-semibold tabular-nums',
-          total === 0 && 'text-stone-600',
-          total > 0 && isPositive && 'text-emerald-400/90',
-          total > 0 && isNegative && 'text-red-400/90',
-          total > 0 && !isPositive && !isNegative && 'text-stone-400'
+          total === 0 && 'text-muted-foreground',
+          total > 0 && isPositive && 'text-emerald-600 dark:text-emerald-400/90',
+          total > 0 && isNegative && 'text-red-600 dark:text-red-400/90',
+          total > 0 && !isPositive && !isNegative && 'text-muted-foreground'
         )}
       >
         {total === 0 ? '—' : formatAmount(profit)}
       </span>
       {total > 0 && (
-        <span className="tabular-nums text-stone-600">
+        <span className="tabular-nums text-muted-foreground">
           {decided > 0 && (
             <>
               {wins}-{losses}

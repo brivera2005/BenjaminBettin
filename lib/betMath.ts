@@ -11,6 +11,18 @@ export function parseAmericanOdds(odds: string): number | null {
   return value;
 }
 
+/** Display American odds with a leading + for positive values (e.g. 105 → +105). */
+export function formatAmericanOddsDisplay(odds: string): string {
+  const trimmed = odds.trim();
+  if (!trimmed) return trimmed;
+  if (trimmed.startsWith('+') || trimmed.startsWith('-')) return trimmed;
+
+  const value = parseAmericanOdds(trimmed);
+  if (value === null) return trimmed;
+  if (value > 0) return `+${trimmed}`;
+  return trimmed;
+}
+
 export function calculateBetResult(
   wager: number,
   odds: string,
