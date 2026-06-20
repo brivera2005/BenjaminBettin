@@ -84,12 +84,12 @@ function StatCard({
   valueClass?: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-stone-900/40 px-3 py-3">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-stone-600">{label}</p>
-      <p className={cn('mt-1 text-lg font-semibold tabular-nums text-stone-100', valueClass)}>
+    <div className="rounded-xl border border-border-subtle bg-surface px-3 py-3">
+      <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className={cn('mt-1 text-lg font-semibold tabular-nums text-heading', valueClass)}>
         {value}
       </p>
-      {sub && <p className="mt-0.5 text-[10px] text-stone-600">{sub}</p>}
+      {sub && <p className="mt-0.5 text-[10px] text-muted-foreground">{sub}</p>}
     </div>
   );
 }
@@ -104,13 +104,13 @@ function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-white/5 bg-stone-900/30 p-4">
+    <section className="rounded-2xl border border-border-subtle bg-surface p-4">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
-          <h2 className="text-sm font-bold text-stone-200">{title}</h2>
-          {subtitle && <p className="text-[10px] text-stone-600">{subtitle}</p>}
+          <h2 className="text-sm font-bold text-heading">{title}</h2>
+          {subtitle && <p className="text-[10px] text-muted-foreground">{subtitle}</p>}
         </div>
-        <ArrowRight className="h-4 w-4 shrink-0 text-stone-700" />
+        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50" />
       </div>
       {children}
     </section>

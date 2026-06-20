@@ -55,8 +55,8 @@ export function DayPagination({
           className={cn(
             'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition',
             page <= 0
-              ? 'border-white/5 text-stone-700'
-              : 'border-white/10 text-stone-400 hover:border-violet-500/40 active:scale-95'
+              ? 'border-border-subtle text-muted-foreground/50'
+              : 'border-border-default text-muted-foreground hover:border-violet-500/40 active:scale-95'
           )}
           aria-label="Next day"
         >

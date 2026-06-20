@@ -83,7 +83,7 @@ export function AutoGradeButton({
         className={cn(
           'flex w-full items-center justify-center gap-2 rounded-xl border py-2 text-[11px] font-bold uppercase tracking-widest transition active:scale-[0.99]',
           configured === false
-            ? 'border-white/5 bg-stone-900/40 text-stone-600'
+            ? 'border-border-subtle bg-surface text-muted-foreground'
             : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/15',
           loading && 'opacity-60'
         )}
@@ -95,20 +95,20 @@ export function AutoGradeButton({
       </button>
 
       {configured === false && (
-        <p className="text-center text-[10px] leading-relaxed text-stone-600">
+        <p className="text-center text-[10px] leading-relaxed text-muted-foreground">
           Add your Odds API key in the <span className="text-violet-400">Settings</span> tab to
           enable score lookups.
         </p>
       )}
 
       {configured !== false && pendingCount > 0 && (
-        <p className="text-center text-[10px] text-stone-600">
+        <p className="text-center text-[10px] text-muted-foreground">
           Use team name + ML / spread / O / U — auto-grade matches scores for you.
         </p>
       )}
 
       {lastResults && lastResults.length > 0 && (
-        <ul className="rounded-lg border border-white/5 bg-stone-900/40 px-2 py-1.5 text-[10px] text-stone-500">
+        <ul className="rounded-lg border border-border-subtle bg-surface px-2 py-1.5 text-[10px] text-muted-foreground">
           {lastResults.slice(0, 5).map((r) => (
             <li key={r.betId} className="truncate">
               <span

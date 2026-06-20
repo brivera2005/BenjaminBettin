@@ -23,11 +23,11 @@ export function MonthlySummary({ summaries, onMonthClick }: MonthlySummaryProps)
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-white/5 bg-stone-900/40 px-4 py-3 text-left transition hover:border-violet-500/20"
+        className="mb-3 flex w-full items-center justify-between gap-2 rounded-xl border border-border-subtle bg-surface px-4 py-3 text-left transition hover:border-violet-500/20"
       >
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-violet-400" />
-          <span className="text-sm font-bold tracking-tight text-stone-200">
+          <span className="text-sm font-bold tracking-tight text-heading">
             Monthly Summary
           </span>
           <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-300">
@@ -35,9 +35,9 @@ export function MonthlySummary({ summaries, onMonthClick }: MonthlySummaryProps)
           </span>
         </div>
         {expanded ? (
-          <ChevronUp className="h-4 w-4 shrink-0 text-stone-500" />
+          <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
         ) : (
-          <ChevronDown className="h-4 w-4 shrink-0 text-stone-500" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         )}
       </button>
 
@@ -71,16 +71,16 @@ export function MonthlySummary({ summaries, onMonthClick }: MonthlySummaryProps)
                     : undefined
                 }
                 className={cn(
-                  'rounded-2xl border border-white/5 bg-stone-900/30 p-4',
+                  'rounded-2xl border border-border-subtle bg-surface p-4',
                   onMonthClick &&
                     !isPriorPeriodKey(month.key) &&
-                    'cursor-pointer transition hover:border-violet-500/30 hover:bg-stone-900/50 active:scale-[0.99]'
+                    'cursor-pointer transition hover:border-violet-500/30 hover:bg-surface-strong active:scale-[0.99]'
                 )}
               >
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-bold text-stone-100">{month.label}</h3>
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-600">
+                    <h3 className="text-base font-bold text-heading">{month.label}</h3>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       {month.totalBets} bet{month.totalBets !== 1 ? 's' : ''}
                       {month.pending > 0 && ` · ${month.pending} pending`}
                     </p>
@@ -133,8 +133,8 @@ function MiniStat({
   className?: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-stone-950/40 px-2 py-2 text-center">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-stone-600">{label}</p>
+    <div className="rounded-lg border border-border-subtle bg-surface-strong px-2 py-2 text-center">
+      <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
       <p className={cn('text-sm font-semibold tabular-nums', className)}>{value}</p>
     </div>
   );
