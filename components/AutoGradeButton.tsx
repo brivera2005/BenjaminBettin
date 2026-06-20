@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface AutoGradeButtonProps {
   pendingCount: number;
+  configRefreshKey?: number;
   onGraded: (payload: {
     graded: number;
     skipped: number;
@@ -22,7 +23,12 @@ export interface GradeResultItem {
   matchedGame?: string;
 }
 
-export function AutoGradeButton({ pendingCount, onGraded, onError }: AutoGradeButtonProps) {
+export function AutoGradeButton({
+  pendingCount,
+  configRefreshKey = 0,
+  onGraded,
+  onError,
+}: AutoGradeButtonProps) {
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastResults, setLastResults] = useState<GradeResultItem[] | null>(null);
@@ -32,7 +38,7 @@ export function AutoGradeButton({ pendingCount, onGraded, onError }: AutoGradeBu
       .then((r) => r.json() as Promise<{ configured: boolean }>)
       .then((d) => setConfigured(d.configured))
       .catch(() => setConfigured(false));
-  }, []);
+  }, [configRefreshKey]);
 
   const run = useCallback(async () => {
     setLoading(true);
@@ -90,7 +96,8 @@ export function AutoGradeButton({ pendingCount, onGraded, onError }: AutoGradeBu
 
       {configured === false && (
         <p className="text-center text-[10px] leading-relaxed text-stone-600">
-          Add <code className="text-stone-500">ODDS_API_KEY</code> to enable score lookups.
+          Add your Odds API key in the <span className="text-violet-400">Settings</span> tab to
+          enable score lookups.
         </p>
       )}
 

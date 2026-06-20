@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { gradePendingBets } from '@/lib/autoGrade';
 import { getSessionUserId } from '@/lib/auth';
 import { listBetsForUser, updateBet } from '@/lib/db';
-import { fetchCompletedScores, getOddsApiKey } from '@/lib/oddsApi';
+import { fetchCompletedScores, resolveOddsApiKey } from '@/lib/oddsApi';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,13 +12,12 @@ export async function POST() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const apiKey = await getOddsApiKey();
-  if (!apiKey) {
+  const resolved = await resolveOddsApiKey(userId);
+  if (!resolved) {
     return NextResponse.json(
       {
         error: 'not_configured',
-        message:
-          'Add a free API key from the-odds-api.com as ODDS_API_KEY (500 credits/month).',
+        message: 'Add your free Odds API key in Settings to enable auto-grade.',
       },
       { status: 503 }
     );
@@ -32,7 +31,7 @@ export async function POST() {
 
   let games;
   try {
-    games = await fetchCompletedScores(3);
+    games = await fetchCompletedScores(resolved.key, 3);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to fetch scores';
     return NextResponse.json({ error: message }, { status: 502 });
@@ -55,10 +54,19 @@ export async function POST() {
     graded: graded.length,
     skipped: skipped.length,
     results: [...graded, ...skipped],
+    keySource: resolved.source,
   });
 }
 
 export async function GET() {
-  const configured = Boolean(await getOddsApiKey());
-  return NextResponse.json({ configured });
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return NextResponse.json({ configured: false, source: null });
+  }
+
+  const resolved = await resolveOddsApiKey(userId);
+  return NextResponse.json({
+    configured: Boolean(resolved),
+    source: resolved?.source ?? null,
+  });
 }

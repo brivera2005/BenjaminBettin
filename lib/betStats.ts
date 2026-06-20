@@ -117,6 +117,28 @@ export interface DailyRecap {
   total: number;
 }
 
+export interface DailyProfitEntry {
+  profit: number;
+  hasSettled: boolean;
+}
+
+export function computeDailyProfitByDate(
+  bets: Pick<Bet, 'bet_date' | 'wager' | 'odds' | 'outcome'>[]
+): Map<string, DailyProfitEntry> {
+  const map = new Map<string, DailyProfitEntry>();
+
+  for (const bet of bets) {
+    const entry = map.get(bet.bet_date) ?? { profit: 0, hasSettled: false };
+    if (bet.outcome !== 'pending') {
+      entry.hasSettled = true;
+      entry.profit += calculateBetResult(bet.wager, bet.odds, bet.outcome);
+    }
+    map.set(bet.bet_date, entry);
+  }
+
+  return map;
+}
+
 function summarizeDateRange(
   bets: Pick<Bet, 'bet_date' | 'wager' | 'odds' | 'outcome'>[],
   start: string,

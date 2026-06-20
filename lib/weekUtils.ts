@@ -10,6 +10,12 @@ export interface WeekRange {
 }
 
 const DAY_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const DAY_LABEL_FMT = new Intl.DateTimeFormat('en-US', {
+  weekday: 'long',
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+});
 
 function parseLocalDate(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);
@@ -105,6 +111,26 @@ export function weekProfit(bets: Bet[]): number {
 export function formatShortDate(dateStr: string): string {
   const d = parseLocalDate(dateStr);
   return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+export function formatDayLabel(dateStr: string): string {
+  return DAY_LABEL_FMT.format(parseLocalDate(dateStr));
+}
+
+/** Unique bet dates plus today, newest first. */
+export function navigableBetDates(bets: Pick<Bet, 'bet_date'>[]): string[] {
+  const dates = new Set<string>([todayIso()]);
+  for (const bet of bets) dates.add(bet.bet_date);
+  return [...dates].sort((a, b) => b.localeCompare(a));
+}
+
+export function betsOnDate(bets: Bet[], date: string): Bet[] {
+  return sortBetsByDayAndWager(bets.filter((bet) => bet.bet_date === date));
+}
+
+export function dayPageForMonth(dates: string[], monthKey: string): number {
+  const idx = dates.findIndex((d) => d.startsWith(monthKey));
+  return idx >= 0 ? idx : 0;
 }
 
 export function todayIso(): string {

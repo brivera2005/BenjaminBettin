@@ -14,6 +14,9 @@ export async function getBindings(): Promise<CloudflareEnv> {
       AUTH_SECRET: process.env.AUTH_SECRET ?? '',
       APP_URL: process.env.APP_URL ?? 'http://localhost:3000',
       ODDS_API_KEY: process.env.ODDS_API_KEY ?? '',
+      STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? '',
+      STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? '',
+      STRIPE_PREMIUM_PRICE_ID: process.env.STRIPE_PREMIUM_PRICE_ID ?? '',
     };
   }
 }

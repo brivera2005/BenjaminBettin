@@ -1,15 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Download, Sparkles, X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import {
   checkNativeAppUpdate,
   installNativeAppUpdate,
   isNativeAndroidApp,
   type ReleaseCheckResult,
 } from '@/lib/appUpdates';
-import { AD_SLOT_ENABLED, PREMIUM_ENABLED, PREMIUM_PRICE_LABEL } from '@/lib/mobileConfig';
+import { AD_SLOT_ENABLED, PREMIUM_ENABLED } from '@/lib/mobileConfig';
 import { cn } from '@/lib/utils';
+import { PremiumUpgrade } from '@/components/PremiumUpgrade';
 import { useAuth } from '@/components/AuthProvider';
 
 export function MobileShellExtras() {
@@ -98,21 +99,7 @@ export function MobileShellExtras() {
       )}
 
       {PREMIUM_ENABLED && !isPremium && (
-        <div className="fixed bottom-16 right-3 z-40 max-w-[11rem] rounded-2xl border border-violet-500/25 bg-violet-500/10 p-3 shadow-lg shadow-violet-950/40 backdrop-blur">
-          <div className="flex items-center gap-1.5 text-violet-200">
-            <Sparkles className="h-3.5 w-3.5" />
-            <p className="text-[11px] font-bold uppercase tracking-wide">Go Premium</p>
-          </div>
-          <p className="mt-1 text-[10px] leading-snug text-stone-400">
-            Remove ads + unlock pro stats for {PREMIUM_PRICE_LABEL}.
-          </p>
-          <button
-            type="button"
-            className="mt-2 w-full rounded-lg bg-violet-600 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white"
-          >
-            Upgrade
-          </button>
-        </div>
+        <PremiumUpgrade className="fixed bottom-16 right-3 z-40 max-w-[11rem]" />
       )}
     </>
   );

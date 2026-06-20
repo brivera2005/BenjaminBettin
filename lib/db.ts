@@ -40,7 +40,7 @@ export async function getUserById(id: string): Promise<User | null> {
   const db = await getDb();
   const row = await db
     .prepare(
-      `SELECT id, email, name, avatar_url, is_premium, premium_grandfathered_at
+      `SELECT id, email, name, avatar_url, is_premium, premium_grandfathered_at, premium_purchased_at
        FROM users WHERE id = ?`
     )
     .bind(id)
@@ -51,6 +51,7 @@ export async function getUserById(id: string): Promise<User | null> {
       avatar_url: string | null;
       is_premium: number;
       premium_grandfathered_at: string | null;
+      premium_purchased_at: string | null;
     }>();
 
   if (!row) return null;
@@ -62,7 +63,37 @@ export async function getUserById(id: string): Promise<User | null> {
     avatar_url: row.avatar_url,
     is_premium: Boolean(row.is_premium),
     premium_grandfathered_at: row.premium_grandfathered_at,
+    premium_purchased_at: row.premium_purchased_at,
   };
+}
+
+export async function isStripeCheckoutSessionProcessed(sessionId: string): Promise<boolean> {
+  const db = await getDb();
+  const row = await db
+    .prepare('SELECT id FROM users WHERE stripe_checkout_session_id = ? LIMIT 1')
+    .bind(sessionId)
+    .first<{ id: string }>();
+  return Boolean(row);
+}
+
+export async function grantPremiumFromStripe(
+  userId: string,
+  stripeSessionId: string
+): Promise<boolean> {
+  const db = await getDb();
+  const now = new Date().toISOString();
+  const result = await db
+    .prepare(
+      `UPDATE users
+       SET is_premium = 1,
+           premium_purchased_at = COALESCE(premium_purchased_at, ?),
+           stripe_checkout_session_id = ?
+       WHERE id = ?`
+    )
+    .bind(now, stripeSessionId, userId)
+    .run();
+
+  return (result.meta.changes ?? 0) > 0;
 }
 
 export async function listBetsForUser(userId: string): Promise<Bet[]> {
@@ -180,4 +211,23 @@ export async function deleteBet(userId: string, betId: string): Promise<boolean>
     .run();
 
   return (result.meta.changes ?? 0) > 0;
+}
+
+export async function getUserOddsApiKey(userId: string): Promise<string | null> {
+  const db = await getDb();
+  const row = await db
+    .prepare('SELECT odds_api_key FROM users WHERE id = ? LIMIT 1')
+    .bind(userId)
+    .first<{ odds_api_key: string | null }>();
+
+  const key = row?.odds_api_key?.trim();
+  return key || null;
+}
+
+export async function setUserOddsApiKey(userId: string, apiKey: string | null): Promise<void> {
+  const db = await getDb();
+  await db
+    .prepare('UPDATE users SET odds_api_key = ? WHERE id = ?')
+    .bind(apiKey?.trim() || null, userId)
+    .run();
 }

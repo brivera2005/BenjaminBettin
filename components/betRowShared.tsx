@@ -49,6 +49,29 @@ export function outcomePlClass(outcome: BetOutcome): string {
   }
 }
 
+export function profitValueClass(value: number): string {
+  if (value > 0) return 'text-emerald-400';
+  if (value < 0) return 'text-red-400';
+  return 'text-stone-500';
+}
+
+export const betRowDateWidth = 'w-8 shrink-0 sm:w-9';
+export const betRowWagerWidth = 'w-9 shrink-0 sm:w-11';
+export const betRowOddsWidth = 'w-10 shrink-0 sm:w-11';
+export const betRowStatusWidth = 'w-6 shrink-0';
+export const betRowPlWidth = 'w-11 shrink-0 sm:w-12';
+export const betRowEditWidth = 'w-6 shrink-0';
+
+export function BetRowPlSpacers() {
+  return (
+    <>
+      <span className={betRowWagerWidth} aria-hidden />
+      <span className={betRowOddsWidth} aria-hidden />
+      <span className={betRowStatusWidth} aria-hidden />
+    </>
+  );
+}
+
 export const compactInputClass =
   'min-w-0 rounded border border-white/10 bg-stone-950/50 px-1 py-0.5 text-[11px] text-stone-200 placeholder:text-stone-600 outline-none focus:border-violet-500/40 sm:px-1.5 sm:text-xs';
 

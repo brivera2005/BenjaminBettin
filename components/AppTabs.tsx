@@ -1,9 +1,9 @@
 'use client';
 
-import { BarChart3, List } from 'lucide-react';
+import { BarChart3, KeyRound, List } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type AppTab = 'bets' | 'history';
+export type AppTab = 'bets' | 'history' | 'settings';
 
 interface AppTabsProps {
   active: AppTab;
@@ -13,6 +13,7 @@ interface AppTabsProps {
 const TABS: { id: AppTab; label: string; icon: typeof List }[] = [
   { id: 'bets', label: 'Bets', icon: List },
   { id: 'history', label: 'History', icon: BarChart3 },
+  { id: 'settings', label: 'Settings', icon: KeyRound },
 ];
 
 export function AppTabs({ active, onChange }: AppTabsProps) {

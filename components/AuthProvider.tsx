@@ -13,6 +13,7 @@ import type { User } from '@/lib/types';
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
   signInWithGoogle: () => void;
   signOut: () => Promise<void>;
 }
@@ -58,8 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, signInWithGoogle, signOut }),
-    [user, loading, signInWithGoogle, signOut]
+    () => ({ user, loading, refreshUser, signInWithGoogle, signOut }),
+    [user, loading, refreshUser, signInWithGoogle, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

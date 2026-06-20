@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Search, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { AutoGradeButton, type GradeResultItem } from '@/components/AutoGradeButton';
 import { AppTabs, type AppTab } from '@/components/AppTabs';
 import { AuthButton } from '@/components/AuthButton';
@@ -13,42 +13,44 @@ import {
 import { BetCompactRow } from '@/components/BetCompactRow';
 import { BetInlineEditRow } from '@/components/BetInlineEditRow';
 import { BetQuickAddRow } from '@/components/BetQuickAddRow';
+import { DayPagination } from '@/components/DayPagination';
 import { HistoryView } from '@/components/HistoryView';
+import { SettingsView } from '@/components/SettingsView';
 import { DisplayModeProvider } from '@/components/DisplayModeContext';
 import { MobileShellExtras } from '@/components/MobileShellExtras';
+import { PremiumUpgrade } from '@/components/PremiumUpgrade';
 import { RunningTotalBanner } from '@/components/RunningTotalBanner';
 import { SignInPrompt } from '@/components/SignInPrompt';
 import { Toast, type ToastTone } from '@/components/Toast';
-import { WeekPagination } from '@/components/WeekPagination';
 import { useAuth } from '@/components/AuthProvider';
 import { loadBetDefaults, saveBetDefaults } from '@/lib/betDefaults';
+import { PREMIUM_ENABLED } from '@/lib/mobileConfig';
 import { needsManualGrading } from '@/lib/betParse';
-import { computeDailyRecaps, computeOverallStats, monthSummariesWithPrior } from '@/lib/betStats';
+import { computeDailyRecaps, computeDailyProfitByDate, computeOverallStats, monthSummariesWithPrior } from '@/lib/betStats';
 import { totalWithBaseline } from '@/lib/baseline';
 import {
   calculateRunningTotal,
 } from '@/lib/betMath';
 import type { Bet, BetInput, BetOutcome } from '@/lib/types';
 import {
-  betsInWeek,
-  currentWeekKey,
-  groupBetsIntoWeeks,
+  betsOnDate,
+  dayPageForMonth,
+  formatDayLabel,
+  navigableBetDates,
   todayIso,
-  weekKeyFromDate,
-  weekPageForMonth,
 } from '@/lib/weekUtils';
 
 export default function BetTracker() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const [bets, setBets] = useState<Bet[]>([]);
   const [loadingBets, setLoadingBets] = useState(false);
-  const [weekPage, setWeekPage] = useState(0);
+  const [dayPage, setDayPage] = useState(0);
   const [activeTab, setActiveTab] = useState<AppTab>('bets');
-  const [weekSearch, setWeekSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; tone: ToastTone } | null>(null);
   const [defaults, setDefaults] = useState(loadBetDefaults);
-  const [autoGradeMissedIds, setAutoGradeMissedIds] = useState<Set<string>>(() => new Set());
+  const [autoGradeMissedIds, setAutoGradeMissedIds] = useState<Set<string>>(new Set());
+  const [oddsApiRefreshKey, setOddsApiRefreshKey] = useState(0);
   const saveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const showToast = useCallback((message: string, tone: ToastTone = 'info') => {
@@ -76,11 +78,37 @@ export default function BetTracker() {
   }, [user, loadBets]);
 
   useEffect(() => {
-    const timers = saveTimers.current;
-    return () => {
-      for (const timer of timers.values()) clearTimeout(timer);
-    };
-  }, []);
+    if (!user) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const premiumResult = params.get('premium');
+    if (!premiumResult) return;
+
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (premiumResult === 'cancel') {
+      showToast('Checkout canceled', 'info');
+      return;
+    }
+
+    if (premiumResult !== 'success') return;
+
+    showToast('Payment received — unlocking premium…', 'success');
+
+    let attempts = 0;
+    const timer = window.setInterval(async () => {
+      attempts += 1;
+      await refreshUser();
+      if (user?.premium || attempts >= 15) {
+        window.clearInterval(timer);
+        if (attempts >= 15 && !user?.premium) {
+          showToast('Premium may take a moment — refresh if badge is missing', 'info');
+        }
+      }
+    }, 2000);
+
+    return () => window.clearInterval(timer);
+  }, [user, refreshUser, showToast]);
 
   const trackedProfit = useMemo(() => calculateRunningTotal(bets), [bets]);
   const runningTotal = useMemo(
@@ -95,49 +123,43 @@ export default function BetTracker() {
   const lossCount = useMemo(() => bets.filter((b) => b.outcome === 'loss').length, [bets]);
   const winRate = useMemo(() => computeOverallStats(bets).winRate, [bets]);
   const dailyRecaps = useMemo(() => computeDailyRecaps(bets, todayIso()), [bets]);
+  const dailyProfitByDate = useMemo(() => computeDailyProfitByDate(bets), [bets]);
   const pendingCount = useMemo(() => bets.filter((b) => b.outcome === 'pending').length, [bets]);
   const monthSummaries = useMemo(() => monthSummariesWithPrior(bets), [bets]);
-  const lastBet = bets[0] ?? null;
 
-  const weeks = useMemo(() => groupBetsIntoWeeks(bets), [bets]);
-  const totalWeeks = weeks.length;
-  const currentWeek = weeks[weekPage] ?? weeks[0];
-  const weekBetsRaw = useMemo(
-    () => (currentWeek ? betsInWeek(bets, currentWeek) : []),
-    [bets, currentWeek]
+  const betDates = useMemo(() => navigableBetDates(bets), [bets]);
+  const totalDays = betDates.length;
+  const currentDate = betDates[dayPage] ?? betDates[0] ?? todayIso();
+  const dayBets = useMemo(
+    () => betsOnDate(bets, currentDate),
+    [bets, currentDate]
   );
-  const weekBets = useMemo(() => {
-    const q = weekSearch.trim().toLowerCase();
-    if (!q) return weekBetsRaw;
-    return weekBetsRaw.filter((b) => b.bet.toLowerCase().includes(q));
-  }, [weekBetsRaw, weekSearch]);
-  const isCurrentWeek = currentWeek?.key === currentWeekKey();
+  const isToday = currentDate === todayIso();
 
   const showManualLegend = useMemo(
     () =>
-      weekBetsRaw.some((b) =>
+      dayBets.some((b) =>
         needsManualGrading(b, autoGradeMissedIds.has(b.id)).manual
       ),
-    [weekBetsRaw, autoGradeMissedIds]
+    [dayBets, autoGradeMissedIds]
   );
 
   useEffect(() => {
-    if (weekPage >= totalWeeks && totalWeeks > 0) setWeekPage(totalWeeks - 1);
-  }, [weekPage, totalWeeks]);
+    if (dayPage >= totalDays && totalDays > 0) setDayPage(totalDays - 1);
+  }, [dayPage, totalDays]);
 
   const jumpToToday = useCallback(() => {
-    const key = currentWeekKey();
-    const idx = weeks.findIndex((w) => w.key === key);
-    if (idx >= 0) setWeekPage(idx);
-  }, [weeks]);
+    const idx = betDates.findIndex((d) => d === todayIso());
+    if (idx >= 0) setDayPage(idx);
+  }, [betDates]);
 
   const jumpToMonth = useCallback(
     (monthKey: string) => {
       if (monthKey.startsWith('prior-')) return;
       setActiveTab('bets');
-      setWeekPage(weekPageForMonth(weeks, monthKey));
+      setDayPage(dayPageForMonth(betDates, monthKey));
     },
-    [weeks]
+    [betDates]
   );
 
   const handleAutoGraded = useCallback(
@@ -221,10 +243,9 @@ export default function BetTracker() {
     const data = (await response.json()) as { bet: Bet };
     setBets((current) => {
       const next = [data.bet, ...current];
-      const key = weekKeyFromDate(values.bet_date);
-      const wks = groupBetsIntoWeeks(next);
-      const idx = wks.findIndex((w) => w.key === key);
-      if (idx >= 0) setWeekPage(idx);
+      const dates = navigableBetDates(next);
+      const idx = dates.findIndex((d) => d === values.bet_date);
+      if (idx >= 0) setDayPage(idx);
       return next;
     });
     showToast('Bet saved', 'success');
@@ -236,12 +257,11 @@ export default function BetTracker() {
       setDefaults({ wager: values.wager, odds: values.odds });
       updateBet(id, composeToInput(values));
       setEditingId(null);
-      const key = weekKeyFromDate(values.bet_date);
-      const idx = weeks.findIndex((w) => w.key === key);
-      if (idx >= 0) setWeekPage(idx);
+      const idx = navigableBetDates(bets).findIndex((d) => d === values.bet_date);
+      if (idx >= 0) setDayPage(idx);
       showToast('Bet updated', 'success');
     },
-    [updateBet, weeks, showToast]
+    [updateBet, bets, showToast]
   );
 
   const removeBet = useCallback(
@@ -287,10 +307,6 @@ export default function BetTracker() {
     );
   }
 
-  const repeatFrom: ComposeValues | null = lastBet
-    ? { ...betToCompose(lastBet), bet_date: todayIso(), outcome: 'pending' }
-    : null;
-
   return (
     <DisplayModeProvider>
     <div className="min-h-screen overflow-x-hidden bg-[#050505] text-stone-100">
@@ -331,38 +347,26 @@ export default function BetTracker() {
             monthSummaries={monthSummaries}
             onJumpToMonth={jumpToMonth}
           />
+        ) : activeTab === 'settings' ? (
+          <SettingsView onSaved={() => setOddsApiRefreshKey((k) => k + 1)} />
         ) : (
           <>
-            {currentWeek && (
-              <WeekPagination
-                week={currentWeek}
-                page={weekPage}
-                totalWeeks={totalWeeks}
-                betCount={weekBetsRaw.length}
-                isCurrentWeek={isCurrentWeek}
-                onPageChange={setWeekPage}
-                onJumpToToday={jumpToToday}
-              />
-            )}
+            <DayPagination
+              label={formatDayLabel(currentDate)}
+              page={dayPage}
+              totalDays={totalDays}
+              betCount={dayBets.length}
+              isToday={isToday}
+              onPageChange={setDayPage}
+              onJumpToToday={jumpToToday}
+            />
 
             <AutoGradeButton
               pendingCount={pendingCount}
+              configRefreshKey={oddsApiRefreshKey}
               onGraded={handleAutoGraded}
               onError={(m) => showToast(m, 'error')}
             />
-
-            {weekBetsRaw.length > 3 && (
-              <div className="relative mb-3">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-600" />
-                <input
-                  type="search"
-                  value={weekSearch}
-                  onChange={(e) => setWeekSearch(e.target.value)}
-                  placeholder="Filter this week…"
-                  className="w-full rounded-xl border border-white/5 bg-stone-900/40 py-2 pl-9 pr-3 text-xs text-stone-300 outline-none focus:border-violet-500/30"
-                />
-              </div>
-            )}
 
             <div className="overflow-hidden rounded-xl border border-white/5 bg-stone-900/20">
               {showManualLegend && (
@@ -381,23 +385,20 @@ export default function BetTracker() {
               </div>
 
               <BetQuickAddRow
+                betDate={currentDate}
                 defaults={defaults}
-                repeatFrom={repeatFrom}
+                dailyProfitByDate={dailyProfitByDate}
                 onSave={saveNewBet}
               />
 
-              {weekBets.length === 0 ? (
-                weekSearch ? (
+              {dayBets.length === 0 ? (
+                bets.length > 0 ? (
                   <p className="px-4 py-6 text-center text-xs text-stone-600">
-                    No matches — try a different filter.
-                  </p>
-                ) : bets.length > 0 ? (
-                  <p className="px-4 py-6 text-center text-xs text-stone-600">
-                    No bets this week — add one above or swipe to other weeks.
+                    No bets this day — add one above or swipe to other days.
                   </p>
                 ) : null
               ) : (
-                weekBets.map((bet) =>
+                dayBets.map((bet) =>
                   editingId === bet.id ? (
                     <BetInlineEditRow
                       key={bet.id}
@@ -419,14 +420,14 @@ export default function BetTracker() {
               )}
             </div>
 
-            {currentWeek && totalWeeks > 1 && (
-              <WeekPagination
-                week={currentWeek}
-                page={weekPage}
-                totalWeeks={totalWeeks}
-                betCount={weekBetsRaw.length}
-                isCurrentWeek={isCurrentWeek}
-                onPageChange={setWeekPage}
+            {totalDays > 1 && (
+              <DayPagination
+                label={formatDayLabel(currentDate)}
+                page={dayPage}
+                totalDays={totalDays}
+                betCount={dayBets.length}
+                isToday={isToday}
+                onPageChange={setDayPage}
                 onJumpToToday={jumpToToday}
               />
             )}

@@ -7,4 +7,7 @@ interface CloudflareEnv {
   AUTH_SECRET: string;
   APP_URL: string;
   ODDS_API_KEY?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PREMIUM_PRICE_ID?: string;
 }
