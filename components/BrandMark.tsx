@@ -126,7 +126,7 @@ export function BrandMark() {
             }}
             maxLength={48}
             aria-label="Tracker name"
-            className="w-full min-w-0 truncate rounded border border-violet-500/40 bg-black/40 px-1 py-0 text-sm font-black uppercase italic tracking-tighter text-stone-100 outline-none ring-violet-500/30 focus:ring-1 sm:text-base"
+            className="w-full min-w-0 truncate rounded border border-violet-500/40 bg-surface-input px-1 py-0 text-sm font-black uppercase italic tracking-tighter text-foreground outline-none ring-violet-500/30 focus:ring-1 sm:text-base"
           />
         ) : (
           <button
@@ -135,7 +135,7 @@ export function BrandMark() {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             title="Click to personalize your tracker name"
-            className="group/title flex min-w-0 max-w-full items-center gap-1 rounded px-0.5 text-left transition hover:bg-white/5"
+            className="group/title flex min-w-0 max-w-full items-center gap-1 rounded px-0.5 text-left transition hover:bg-hover"
           >
             <h1 className="truncate text-sm font-black uppercase italic tracking-tighter sm:text-base">
               {renderTrackerTitle(trackerName)}

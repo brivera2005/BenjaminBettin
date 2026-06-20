@@ -97,7 +97,7 @@ export function BetInlineEditRow({ initial, onSave, onCancel, onDelete }: BetInl
       <button
         type="button"
         onClick={onCancel}
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-stone-600 hover:bg-white/5"
+        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-hover"
         aria-label="Cancel"
       >
         <X className="h-3 w-3" />
