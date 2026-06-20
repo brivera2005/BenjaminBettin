@@ -19,7 +19,7 @@ const TABS: { id: AppTab; label: string; icon: typeof List }[] = [
 export function AppTabs({ active, onChange }: AppTabsProps) {
   return (
     <nav
-      className="mx-auto flex max-w-6xl gap-0.5 border-b border-white/5 px-3 sm:px-6"
+      className="mx-auto flex max-w-6xl gap-0.5 border-b border-border-subtle px-3 sm:px-6"
       aria-label="Main navigation"
     >
       {TABS.map(({ id, label, icon: Icon }) => (

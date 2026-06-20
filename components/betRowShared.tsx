@@ -73,7 +73,7 @@ export function BetRowPlSpacers() {
 }
 
 export const compactInputClass =
-  'min-w-0 rounded border border-white/10 bg-stone-950/50 px-1 py-0.5 text-[11px] text-stone-200 placeholder:text-stone-600 outline-none focus:border-violet-500/40 sm:px-1.5 sm:text-xs';
+  'min-w-0 rounded border border-border-default bg-surface-input px-1 py-0.5 text-[11px] text-foreground placeholder:text-muted-foreground outline-none focus:border-violet-500/40 sm:px-1.5 sm:text-xs';
 
 interface OutcomePillProps {
   outcome: BetOutcome;
@@ -86,7 +86,7 @@ export function OutcomePill({ outcome, onClick }: OutcomePillProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/10 text-[10px] font-bold transition active:scale-95',
+        'flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border-default text-[10px] font-bold transition active:scale-95',
         outcome === 'win' && 'border-emerald-500/30 text-emerald-400',
         outcome === 'loss' && 'border-red-500/30 text-red-400',
         outcome === 'push' && 'border-yellow-500/30 text-yellow-400',

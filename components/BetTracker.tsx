@@ -282,7 +282,7 @@ export default function BetTracker() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="h-8 w-8 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin" />
       </div>
     );
@@ -290,11 +290,11 @@ export default function BetTracker() {
 
   if (!user) {
     return (
-      <div className="min-h-screen overflow-x-hidden bg-[#050505] text-stone-100">
+      <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-violet-900/20 blur-[140px]" />
         </div>
-        <header className="sticky top-0 z-40 border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl">
+        <header className="sticky top-0 z-40 border-b border-border-subtle bg-header backdrop-blur-2xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2 sm:px-6">
             <BrandMark />
             <AuthButton />
@@ -309,13 +309,13 @@ export default function BetTracker() {
 
   return (
     <DisplayModeProvider>
-    <div className="min-h-screen overflow-x-hidden bg-[#050505] text-stone-100">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-violet-900/20 blur-[140px]" />
         <div className="absolute -bottom-32 -right-24 h-[28rem] w-[28rem] rounded-full bg-emerald-900/10 blur-[140px]" />
       </div>
 
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#050505]/80 backdrop-blur-2xl">
+      <header className="sticky top-0 z-40 border-b border-border-subtle bg-header backdrop-blur-2xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-3 py-2 sm:px-6">
           <BrandMark />
           <AuthButton />
@@ -368,13 +368,13 @@ export default function BetTracker() {
               onError={(m) => showToast(m, 'error')}
             />
 
-            <div className="overflow-hidden rounded-xl border border-white/5 bg-stone-900/20">
+            <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface">
               {showManualLegend && (
-                <p className="border-b border-yellow-500/20 bg-yellow-500/10 px-3 py-1.5 text-center text-[10px] font-medium text-yellow-400/90">
+                <p className="border-b border-yellow-500/20 bg-yellow-500/10 px-3 py-1.5 text-center text-[10px] font-medium text-yellow-700">
                   Yellow outline = grade manually (tap outcome pill)
                 </p>
               )}
-              <div className="hidden items-center gap-1.5 border-b border-white/5 bg-stone-900/50 px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-stone-600 sm:flex">
+              <div className="hidden items-center gap-1.5 border-b border-border-subtle bg-surface-strong px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:flex">
                 <span className="w-9">Date</span>
                 <span className="flex-1">Bet</span>
                 <span className="w-10 text-right">$</span>
@@ -393,7 +393,7 @@ export default function BetTracker() {
 
               {dayBets.length === 0 ? (
                 bets.length > 0 ? (
-                  <p className="px-4 py-6 text-center text-xs text-stone-600">
+                  <p className="px-4 py-6 text-center text-xs text-muted-foreground">
                     No bets this day — add one above or swipe to other days.
                   </p>
                 ) : null

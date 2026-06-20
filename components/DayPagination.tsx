@@ -32,8 +32,8 @@ export function DayPagination({
           className={cn(
             'flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition',
             page >= totalDays - 1
-              ? 'border-white/5 text-stone-700'
-              : 'border-white/10 text-stone-400 hover:border-violet-500/40 active:scale-95'
+              ? 'border-border-subtle text-muted-foreground/50'
+              : 'border-border-default text-muted-foreground hover:border-violet-500/40 active:scale-95'
           )}
           aria-label="Previous day"
         >
@@ -41,8 +41,8 @@ export function DayPagination({
         </button>
 
         <div className="min-w-0 flex-1 text-center">
-          <p className="truncate text-xs font-semibold text-stone-200">{label}</p>
-          <p className="text-[9px] text-stone-600">
+          <p className="truncate text-xs font-semibold text-heading">{label}</p>
+          <p className="text-[9px] text-muted-foreground">
             {betCount} bet{betCount !== 1 ? 's' : ''}
             {totalDays > 1 && ` · ${page + 1}/${totalDays}`}
           </p>

@@ -33,7 +33,7 @@ export function RunningTotalBanner({
         'sticky top-[72px] z-30 border-b backdrop-blur-xl transition-colors',
         isPositive && 'bg-emerald-950/40 border-emerald-500/20',
         isNegative && 'bg-red-950/30 border-red-500/20',
-        !isPositive && !isNegative && 'bg-stone-900/60 border-white/5'
+        !isPositive && !isNegative && 'bg-surface-strong border-border-subtle'
       )}
     >
       <div className="mx-auto max-w-6xl px-3 py-1.5 sm:px-6">
@@ -44,7 +44,7 @@ export function RunningTotalBanner({
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-md',
                 isPositive && 'bg-emerald-500/20 text-emerald-400',
                 isNegative && 'bg-red-500/20 text-red-400',
-                !isPositive && !isNegative && 'bg-stone-800 text-stone-500'
+                !isPositive && !isNegative && 'bg-surface-strong text-muted-foreground'
               )}
             >
               {isPositive && <TrendingUp className="h-3 w-3" />}
@@ -52,7 +52,7 @@ export function RunningTotalBanner({
               {!isPositive && !isNegative && <Minus className="h-3 w-3" />}
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-stone-600">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                 Total
               </span>
               <button
@@ -63,7 +63,7 @@ export function RunningTotalBanner({
                   'rounded px-0.5 text-base font-semibold tabular-nums leading-none transition hover:opacity-80 active:scale-[0.98] sm:text-lg',
                   isPositive && 'text-emerald-400',
                   isNegative && 'text-red-400',
-                  !isPositive && !isNegative && 'text-stone-300'
+                  !isPositive && !isNegative && 'text-heading'
                 )}
               >
                 {formatTotal(total)}
@@ -71,7 +71,7 @@ export function RunningTotalBanner({
             </div>
           </div>
 
-          <span className="hidden h-3 w-px bg-white/10 sm:block" />
+          <span className="hidden h-3 w-px bg-divider sm:block" />
 
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9px] tabular-nums sm:text-[10px]">
             <Stat value={settledCount} label="settled" />
@@ -84,7 +84,7 @@ export function RunningTotalBanner({
             />
           </div>
 
-          <span className="hidden h-3 w-px bg-white/10 md:block" />
+          <span className="hidden h-3 w-px bg-divider md:block" />
 
           <DailyRecapStrip recaps={dailyRecaps} className="md:ml-0" />
         </div>
@@ -96,14 +96,14 @@ export function RunningTotalBanner({
 function Stat({
   label,
   value,
-  valueClass = 'text-stone-400',
+  valueClass = 'text-muted-foreground',
 }: {
   label: string;
   value: number | string;
   valueClass?: string;
 }) {
   return (
-    <span className="text-stone-600">
+    <span className="text-muted-foreground">
       <span className={clsx('font-semibold', valueClass)}>{value}</span> {label}
     </span>
   );

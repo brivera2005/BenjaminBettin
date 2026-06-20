@@ -32,7 +32,7 @@ export function BetCompactRow({
         'group flex items-center gap-1 border-b px-1 py-1.5 text-[11px] leading-tight sm:gap-1.5 sm:px-2 sm:text-xs',
         manual
           ? 'border-b-yellow-500/20 bg-yellow-500/[0.07] ring-1 ring-inset ring-yellow-500/35'
-          : 'border-white/5'
+          : 'border-border-subtle'
       )}
       title={manual ? reason ?? 'Grade manually' : undefined}
     >
@@ -50,11 +50,11 @@ export function BetCompactRow({
       <span
         className={cn(
           'min-w-0 flex-1 truncate font-medium',
-          manual ? 'text-yellow-100' : 'text-stone-200'
+          manual ? 'text-yellow-800' : 'text-heading'
         )}
         title={bet.bet || 'No description'}
       >
-        {bet.bet || <span className="text-stone-600 italic">untitled</span>}
+        {bet.bet || <span className="text-muted-foreground italic">untitled</span>}
       </span>
 
       <span className={cn(betRowWagerWidth, 'tabular-nums text-stone-500')}>
@@ -84,7 +84,7 @@ export function BetCompactRow({
         onClick={() => onEdit(bet.id)}
         className={cn(
           betRowEditWidth,
-          'flex h-6 items-center justify-center rounded-md text-stone-600 transition hover:bg-white/5 hover:text-violet-400 sm:opacity-70 sm:group-hover:opacity-100'
+          'flex h-6 items-center justify-center rounded-md text-muted-foreground transition hover:bg-hover hover:text-violet-400 sm:opacity-70 sm:group-hover:opacity-100'
         )}
         aria-label="Edit bet"
       >

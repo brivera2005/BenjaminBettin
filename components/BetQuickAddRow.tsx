@@ -42,7 +42,7 @@ interface BetQuickAddRowProps {
 
 const quickAddFieldClass = cn(
   compactInputClass,
-  'transition-colors hover:border-white/20 hover:bg-stone-950/70'
+  'transition-colors hover:border-border-default hover:bg-surface-strong'
 );
 
 function buildBetDescription(text: string): string {

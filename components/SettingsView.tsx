@@ -96,13 +96,13 @@ export function SettingsView({ onSaved }: SettingsViewProps) {
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <section className="rounded-2xl border border-white/5 bg-stone-900/30 p-4">
+      <section className="rounded-2xl border border-border-subtle bg-surface p-4">
         <div className="mb-3 flex items-center gap-2">
           <KeyRound className="h-4 w-4 text-violet-400" />
-          <h2 className="text-sm font-bold text-stone-100">Odds API</h2>
+          <h2 className="text-sm font-bold text-heading">Odds API</h2>
         </div>
 
-        <p className="text-[11px] leading-relaxed text-stone-500">
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
           Auto-grade uses{' '}
           <a
             href="https://the-odds-api.com"
@@ -116,21 +116,21 @@ export function SettingsView({ onSaved }: SettingsViewProps) {
           to pull finished game scores. Free tier is 500 credits/month — plenty for personal use.
         </p>
 
-        <div className="mt-3 rounded-xl border border-white/5 bg-stone-950/40 px-3 py-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-stone-600">Status</p>
-          <p className="mt-1 text-sm font-medium text-stone-200">
+        <div className="mt-3 rounded-xl border border-border-subtle bg-surface-strong px-3 py-2.5">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</p>
+          <p className="mt-1 text-sm font-medium text-heading">
             {settings?.configured ? (
               <>
                 Connected
                 {settings.hint && (
-                  <span className="ml-1 font-normal text-stone-500">({settings.hint})</span>
+                  <span className="ml-1 font-normal text-muted-foreground">({settings.hint})</span>
                 )}
               </>
             ) : (
               'Not configured'
             )}
           </p>
-          <p className="mt-0.5 text-[10px] text-stone-600">
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
             {settings?.source === 'user' && 'Using your personal key'}
             {settings?.source === 'server' && 'Using app default key'}
             {!settings?.configured && 'Add a key below to enable auto-grade'}
@@ -138,7 +138,7 @@ export function SettingsView({ onSaved }: SettingsViewProps) {
         </div>
 
         <label className="mt-4 block">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-stone-600">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Your API key
           </span>
           <input
@@ -146,7 +146,7 @@ export function SettingsView({ onSaved }: SettingsViewProps) {
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="Paste key from the-odds-api.com"
-            className="mt-1.5 w-full rounded-xl border border-white/10 bg-stone-950/50 px-3 py-2 text-sm text-stone-200 outline-none focus:border-violet-500/40"
+            className="mt-1.5 w-full rounded-xl border border-border-default bg-surface-input px-3 py-2 text-sm text-foreground outline-none focus:border-violet-500/40"
             autoComplete="off"
             spellCheck={false}
           />
@@ -170,7 +170,7 @@ export function SettingsView({ onSaved }: SettingsViewProps) {
               type="button"
               onClick={() => void removeKey()}
               disabled={removing}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-stone-400 transition hover:border-red-500/30 hover:text-red-400 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border-default px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground transition hover:border-red-500/30 hover:text-red-400 disabled:opacity-50"
             >
               {removing ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -185,7 +185,7 @@ export function SettingsView({ onSaved }: SettingsViewProps) {
         {error && <p className="mt-2 text-[11px] text-red-400">{error}</p>}
         {success && <p className="mt-2 text-[11px] text-emerald-400">{success}</p>}
 
-        <p className="mt-3 text-[10px] leading-relaxed text-stone-600">
+        <p className="mt-3 text-[10px] leading-relaxed text-muted-foreground">
           Your key is stored on your account only and never shown again after saving. Each auto-grade
           run uses about 12 credits across major sports.
         </p>
