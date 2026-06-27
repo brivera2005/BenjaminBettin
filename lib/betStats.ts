@@ -184,5 +184,9 @@ export function computeDailyRecaps(
       label: 'Yesterday',
       ...summarizeDateRange(bets, yesterday, yesterday),
     },
+    {
+      label: 'Today',
+      ...summarizeDateRange(bets, today, today),
+    },
   ];
 }
