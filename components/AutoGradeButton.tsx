@@ -103,7 +103,7 @@ export function AutoGradeButton({
 
       {configured !== false && pendingCount > 0 && (
         <p className="text-center text-[10px] text-muted-foreground">
-          Use team name + ML / spread / O / U — auto-grade matches scores for you.
+          Uses team name + ML / spread / O / U. Unmatched bets stay pending — tap outcome to set W/L.
         </p>
       )}
 

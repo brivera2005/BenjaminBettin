@@ -25,7 +25,6 @@ import { Toast, type ToastTone } from '@/components/Toast';
 import { useAuth } from '@/components/AuthProvider';
 import { loadBetDefaults, saveBetDefaults } from '@/lib/betDefaults';
 import { PREMIUM_ENABLED } from '@/lib/mobileConfig';
-import { needsManualGrading } from '@/lib/betParse';
 import { computeDailyRecaps, computeDailyProfitByDate, computeOverallStats, monthSummariesWithPrior } from '@/lib/betStats';
 import { totalWithBaseline } from '@/lib/baseline';
 import {
@@ -136,14 +135,6 @@ export default function BetTracker() {
   );
   const isToday = currentDate === todayIso();
 
-  const showManualLegend = useMemo(
-    () =>
-      dayBets.some((b) =>
-        needsManualGrading(b, autoGradeMissedIds.has(b.id)).manual
-      ),
-    [dayBets, autoGradeMissedIds]
-  );
-
   useEffect(() => {
     if (dayPage >= totalDays && totalDays > 0) setDayPage(totalDays - 1);
   }, [dayPage, totalDays]);
@@ -171,11 +162,14 @@ export default function BetTracker() {
       await loadBets();
       if (payload.graded > 0) {
         showToast(
-          `Graded ${payload.graded} bet${payload.graded !== 1 ? 's' : ''}${payload.skipped > 0 ? ` · ${payload.skipped} highlighted yellow` : ''}`,
+          `Graded ${payload.graded} bet${payload.graded !== 1 ? 's' : ''}${payload.skipped > 0 ? ` · ${payload.skipped} still pending outcome` : ''}`,
           'success'
         );
       } else if (payload.skipped > 0) {
-        showToast(`${payload.skipped} bet${payload.skipped !== 1 ? 's' : ''} need manual grading`, 'info');
+        showToast(
+          `Could not auto-grade ${payload.skipped} bet${payload.skipped !== 1 ? 's' : ''} — tap outcome pill`,
+          'info'
+        );
       } else {
         showToast('No pending bets matched finished games', 'info');
       }
@@ -369,11 +363,6 @@ export default function BetTracker() {
             />
 
             <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface">
-              {showManualLegend && (
-                <p className="border-b border-yellow-500/20 bg-yellow-500/10 px-3 py-1.5 text-center text-[10px] font-medium text-yellow-700">
-                  Yellow outline = grade manually (tap outcome pill)
-                </p>
-              )}
               <div className="hidden items-center gap-1.5 border-b border-border-subtle bg-surface-strong px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground sm:flex">
                 <span className="w-9">Date</span>
                 <span className="flex-1">Bet</span>

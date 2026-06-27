@@ -37,7 +37,7 @@ export async function POST() {
     return NextResponse.json({ error: message }, { status: 502 });
   }
 
-  const results = gradePendingBets(bets, games);
+  const results = gradePendingBets(pending, games);
   const graded: typeof results = [];
   const skipped: typeof results = [];
 

@@ -42,18 +42,13 @@ export function manualGradeReason(betText: string): string | null {
 }
 
 export function needsManualGrading(
-  bet: { bet: string; outcome: string },
+  bet: { outcome: string },
   autoGradeMissed = false
 ): { manual: boolean; reason: string | null } {
-  if (bet.outcome !== 'pending') {
+  if (bet.outcome !== 'pending' || !autoGradeMissed) {
     return { manual: false, reason: null };
   }
-  const reason = detectUnsupported(bet.bet);
-  if (reason) return { manual: true, reason };
-  if (autoGradeMissed) {
-    return { manual: true, reason: 'Auto-grade missed — tap pill to set W/L' };
-  }
-  return { manual: false, reason: null };
+  return { manual: true, reason: 'Auto-grade missed — tap pill to set W/L' };
 }
 
 export function parseBetDescription(text: string): ParsedBetDescription {
